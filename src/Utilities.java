@@ -1,6 +1,15 @@
+import java.net.Inet4Address;
 import java.net.InetAddress;
 
 public class Utilities {
+
+    public static String getServerIp() {
+        return "localhost";
+    }
+
+    public static int getServerPort() {
+        return 3333;
+    }
 
     public static void printMyIp() {
         try {
@@ -52,5 +61,29 @@ public class Utilities {
             System.out.print(String.format("%8s", Integer.toBinaryString(array[i] & 0xFF)).replace(' ', '0') + " ");
         }
         System.out.println();
+    }
+
+    public static boolean isArrayEmty(byte[] array) {
+
+        for (int i = 0; i<array.length; i++) {
+
+            if (array[i] !=0)
+                return false;
+        }
+
+        return true;
+    }
+
+    public static InetAddress getInetAdress(byte[] ip) {
+        try {
+            return InetAddress.getByAddress(ip);
+        } catch (Exception e) {
+            errorMessage(e);
+        }
+        return null;
+    }
+
+    public static int getPortFromByteArray() {
+        return 0;
     }
 }

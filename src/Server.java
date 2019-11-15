@@ -9,7 +9,6 @@ import java.util.ArrayList;
 
 public class Server {
 
-    private final int PORT = 3333;
     private ArrayList<PeerObject> peerListe;
 
     public Server() {
@@ -19,13 +18,15 @@ public class Server {
     private void startServer() {
 
         try {
-            ServerSocket serverSocket = new ServerSocket(PORT);
+            ServerSocket serverSocket = new ServerSocket(Utilities.getServerPort());
             System.out.println("Server gestartet");
             Utilities.printMyIp();
 
             while (true) {
 
                 Socket connectionSocket = serverSocket.accept();
+
+                System.out.println("test2");
 
                 Thread t = new Thread(() -> {
 
@@ -50,7 +51,7 @@ public class Server {
                                     msg = new byte[6];
                                     msgErr = inFromClient.read(msg, 0, 6);
                                     peerListe.add(0, new PeerObject(msg));
-                                    entryResponeMsg(outToClient);
+                                    outToClient.write(entryResponeMsg(outToClient));
                                     break;
                             }
                         }
@@ -66,7 +67,7 @@ public class Server {
         }
     }
 
-    private void entryResponeMsg(DataOutputStream outToClient) {
+    private byte[] entryResponeMsg(DataOutputStream outToClient) {
 
         byte[] msg = new byte[26];
         msg[0] = 2;
@@ -74,21 +75,21 @@ public class Server {
 
         for (int i = 0; i < 4; i++) {
 
-            PeerObject o = peerListe.get(i); //TODO Abfangen wenn index nicht vorhanden
+            PeerObject o = null;
 
-            byte[] ip = {0,0,0,0};
-            byte[] port = {0,0};
+            if (peerListe.size() > i + 1)
+                o = peerListe.get(i); //TODO Abfangen wenn index nicht vorhanden
+
+            byte[] ip = {0, 0, 0, 0};
+            byte[] port = {0, 0};
             if (o != null) {
-               ip = o.getIp();
-               port = o.getPort();
+                ip = o.getIp();
+                port = o.getPort();
             }
             Utilities.packIpPackage(msg, i * 6 + 2, ip, port);
         }
-    }
 
-    private void entryMsg(byte[] msg) {
-
-
+        return msg;
     }
 
     public static void main(String[] args) {
