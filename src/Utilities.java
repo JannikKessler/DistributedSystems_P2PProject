@@ -7,7 +7,11 @@ public class Utilities {
         return "localhost";
     }
 
-    public static int getServerPort() {
+    public static char getServerPort() {
+        return 3334;
+    }
+
+    public static int getPeerPort() {
         return 3333;
     }
 
@@ -38,7 +42,7 @@ public class Utilities {
         }
     }
 
-    public static byte[] intToByteArray(int i) {
+    public static byte[] charToByteArray(char i) {
 
         byte[] result = new byte[2];
         result[0] = (byte) (i >> 8);
@@ -46,13 +50,8 @@ public class Utilities {
         return result;
     }
 
-    public static int byteArrayToInt(byte[] array) {
-
-        int res = 0;
-        for (int i = 0; i < array.length; i++) {
-            res = (res * 10) + (array[i] & 0xFF);
-        }
-        return res;
+    public static char byteArrayToChar(byte[] array) {
+        return (char) (array[1] | array[0] << 8);
     }
 
     public static void printByteArray(byte[] array) {

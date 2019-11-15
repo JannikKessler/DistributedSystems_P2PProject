@@ -13,8 +13,6 @@ public class PeerObject {
 
         ip = Arrays.copyOfRange(msg, 0, 4);
         port = Arrays.copyOfRange(msg, 4, 6);
-        Utilities.printByteArray(ip);
-        Utilities.printByteArray(port);
     }
 
     public PeerObject(byte[] ip, byte[] port) {
@@ -26,12 +24,16 @@ public class PeerObject {
 
         try {
             if (isSocketClosed())
-                socket = new Socket(Utilities.getInetAdress(ip), Utilities.byteArrayToInt(port));
+                createSocket();
             return socket.getOutputStream();
         } catch (Exception e) {
             Utilities.errorMessage(e);
         }
         return null;
+    }
+
+    private void createSocket() throws Exception {
+        socket = new Socket(Utilities.getInetAdress(ip), Utilities.byteArrayToChar(port));
     }
 
     private boolean isSocketClosed() {
@@ -43,7 +45,7 @@ public class PeerObject {
 
         try {
             if (isSocketClosed())
-                socket = new Socket(Utilities.getInetAdress(ip), Utilities.byteArrayToInt(port));
+                createSocket();
             return socket.getInputStream();
         } catch (Exception e) {
             Utilities.errorMessage(e);
@@ -57,5 +59,13 @@ public class PeerObject {
 
     public byte[] getIp() {
         return ip;
+    }
+
+    public void closeStreams() {
+        try {
+            socket.close();
+        } catch (Exception e) {
+            Utilities.errorMessage(e);
+        }
     }
 }
