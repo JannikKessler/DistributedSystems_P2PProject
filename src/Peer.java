@@ -8,12 +8,12 @@ import java.util.Arrays;
 
 public class Peer {
 
-    private final int IPPACKLENGTH = 6;
     private PeerObject entryServer;
-    private ArrayList<PeerObject> peerListe;
+    private ArrayList<PeerObject> peerList;
 
     public Peer() {
-        peerListe = new ArrayList<>();
+        peerList = new ArrayList<>();
+        Variables.putObject("syn_object", this);
     }
 
     private void startPeer() {
@@ -22,24 +22,29 @@ public class Peer {
             BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 
             InetAddress inetAddress = InetAddress.getByName(Utilities.getServerIp());
-            entryServer = new PeerObject(inetAddress.getAddress(), Utilities.charToByteArray(Utilities.getServerPort()));
+            entryServer = new PeerObject(inetAddress.getAddress(), Utilities.charToByteArray((char) Utilities.getServerPort()));
 
             System.out.println("Client gestartet");
             Utilities.printMyIp();
 
-            sendMyIp(entryServer, 1);
+
+            while (!sendMyIp(entryServer, 1)) {
+                System.err.println("Socket konnte nicht erstellt werden\nNeuer Versuch in einer Sekunde");
+                Thread.sleep(1000);
+            }
 
             byte[] entyResponeMessage = new byte[26];
             int msgErr;
             msgErr = entryServer.getInFromPeerStream().read(entyResponeMessage, 0, 26);
-            processEntryResponeMessage(entyResponeMessage);
+            processResponeMessage(entyResponeMessage);
             entryServer.closeStreams();
 
             Thread keepAlive = new Thread(() -> {
                 while (true) {
                     try {
                         sendKeepAlive();
-                        Thread.sleep(30000);
+                        Utilities.printPeerList(peerList);
+                        Thread.sleep(Variables.getIntValue("time_send_keep_alive"));
                     } catch (Exception e) {
                         Utilities.errorMessage(e);
                     }
@@ -48,7 +53,6 @@ public class Peer {
             keepAlive.start();
 
             ServerSocket myServer = new ServerSocket(Utilities.getPeerPort());
-            myServer.setReuseAddress(true);
 
             while (true) {
 
@@ -65,10 +69,10 @@ public class Peer {
                         byte[] msg = new byte[1];
 
                         msgErr2 = inFromPeer.read(msg, 0, 1);
-                        char tag = Utilities.byteArrayToChar(msg);
+                        int tag = msg[0];
 
                         msgErr2 = inFromPeer.read(msg, 0, 1);
-                        char version = Utilities.byteArrayToChar(msg);
+                        int version = msg[0];
 
                         if (version == 0) {
 
@@ -76,11 +80,20 @@ public class Peer {
                                 case 3:
                                     msg = new byte[6];
                                     msgErr2 = inFromPeer.read(msg, 0, 6);
-                                    peerListe.add(0, new PeerObject(msg));
-                                    outToPeer.write(SharedCode.responeMsg(peerListe, 4));
+                                    PeerObject p = new PeerObject(msg);
+                                    SharedCode.modifyPeerList(peerList, 1, p);
+                                    p.getOutToPeerStream().write(SharedCode.responeMsg(peerList, 4));
                                     break;
+                                case 4:
+                                    msg = new byte[26];
+                                    msgErr2 = inFromPeer.read(msg, 0, 26);
+                                    processResponeMessage(msg);
+                                default:
+                                    Utilities.switchDefault();
                             }
                         }
+
+                        connectionSocket.close();
 
                     } catch (Exception ioe) {
                         Utilities.errorMessage(ioe);
@@ -109,24 +122,35 @@ public class Peer {
         }
     }
 
-    private void processEntryResponeMessage(byte[] entyResponeMessage) {
+    private void processResponeMessage(byte[] entyResponeMessage) {
 
         int tag = entyResponeMessage[0];
         int version = entyResponeMessage[1];
 
-        for (int i = 2; i < entyResponeMessage.length; i += IPPACKLENGTH) {
+        if (!(tag == 3 || tag == 4)) {
+            Utilities.fehlermeldungBenutzerdefiniert("Fehlerhafter tag übergeben");
+            return;
+        }
 
-            byte[] ipPack = Arrays.copyOfRange(entyResponeMessage, i, i + IPPACKLENGTH);
+        if (!(version == 0)) {
+            Utilities.fehlermeldungVersion();
+            return;
+        }
+
+        for (int i = 2; i < entyResponeMessage.length; i += Utilities.getIpPackLength()) {
+
+            byte[] ipPack = Arrays.copyOfRange(entyResponeMessage, i, i + Utilities.getIpPackLength());
             if (!Utilities.isArrayEmty(ipPack)) {
                 PeerObject po = new PeerObject(ipPack);
-                sendMyIp(po, 3);
+                if (tag == 4 || sendMyIp(po, 3))
+                    SharedCode.modifyPeerList(peerList, 1, po);
                 po.closeStreams();
-                peerListe.add(po);
+                peerList.add(po);
             }
         }
     }
 
-    private void sendMyIp(PeerObject po, int tag) {
+    private boolean sendMyIp(PeerObject po, int tag) {
 
         try {
             byte[] entryMsg = new byte[8];
@@ -134,8 +158,9 @@ public class Peer {
             entryMsg[1] = 0; //Version
             Utilities.packIpPackage(entryMsg, 2, Utilities.getMyIpAsByteArray(), Utilities.getPeerPortAsByteArray());
             po.getOutToPeerStream().write(entryMsg);
+            return true;
         } catch (Exception e) {
-            Utilities.errorMessage(e);
+            return false;
         }
     }
 

@@ -24,19 +24,15 @@ public class PeerObject {
         timestamp = new Date();
     }
 
-    public OutputStream getOutToPeerStream() {
+    public OutputStream getOutToPeerStream() throws Exception {
 
-        try {
-            if (isSocketClosed())
-                createSocket();
-            return socket.getOutputStream();
-        } catch (Exception e) {
-            Utilities.errorMessage(e);
-        }
-        return null;
+        if (isSocketClosed())
+            createSocket();
+        return socket.getOutputStream();
     }
 
     private void createSocket() throws Exception {
+
         socket = new Socket(Utilities.getInetAdress(ip), Utilities.byteArrayToChar(port));
     }
 

@@ -1,16 +1,17 @@
 import java.io.*;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 public class Server {
 
-    private ArrayList<PeerObject> peerListe;
+    private ArrayList<PeerObject> peerList;
 
     public Server() {
-        peerListe = new ArrayList<>();
+        peerList = new ArrayList<>();
+        Variables.putObject("syn_object", this);
     }
 
     private void startServer() {
@@ -22,14 +23,17 @@ public class Server {
 
             Thread cleanPeerList = new Thread(() -> {
                 try {
-                    long grenzwert = new Date().getTime() - 60000;
-                    ArrayList<PeerObject> delete = new ArrayList<>();
-                    for (PeerObject p : peerListe) {
-                        if (p.getTimestamp().getTime() < grenzwert)
-                            delete.add(p);
+                    while (true) {
+                        long grenzwert = new Date().getTime() - Variables.getIntValue("time_server_max_without_keep_alive");
+                        ArrayList<PeerObject> deleteList = new ArrayList<>();
+                        for (PeerObject p : peerList) {
+                            if (p.getTimestamp().getTime() < grenzwert)
+                                deleteList.add(p);
+                        }
+                        SharedCode.deletePeers(peerList, deleteList);
+                        Utilities.printPeerList(peerList);
+                        Thread.sleep(Variables.getIntValue("time_serverlist_clean"));
                     }
-                    Utilities.deletePeers(peerListe, delete);
-                    Thread.sleep(50000);
                 } catch (Exception e) {
                     Utilities.errorMessage(e);
                 }
@@ -60,18 +64,15 @@ public class Server {
 
                             switch (tag) {
                                 case 1:
-                                    msg = new byte[6];
-                                    msgErr = inFromClient.read(msg, 0, 6);
-                                    addPeer(new PeerObject(msg));
-                                    outToClient.write(SharedCode.responeMsg(peerListe, 3));
-                                    break;
                                 case 5:
                                     msg = new byte[6];
                                     msgErr = inFromClient.read(msg, 0, 6);
                                     addPeer(new PeerObject(msg));
+                                    if (tag == 1)
+                                        outToClient.write(SharedCode.responeMsg(peerList, 3));
                                     break;
                                 default:
-                                    System.err.println("Es wurde ein falscher Tag übergeben");
+                                    Utilities.switchDefault();
                             }
                         }
 
@@ -90,12 +91,13 @@ public class Server {
     }
 
     private void addPeer(PeerObject peerObject) {
-        for (PeerObject p : peerListe) {
-            if (p.getIp() == peerObject.getIp()) {
-                peerObject.updateTimestamp();
+        for (PeerObject p : peerList) {
+            if (Arrays.equals(p.getIp(), peerObject.getIp())) {
+                p.updateTimestamp();
+                return;
             }
         }
-        peerListe.add(0, peerObject);
+        SharedCode.modifyPeerList(peerList, 1, peerObject);
     }
 
     public static void main(String[] args) {

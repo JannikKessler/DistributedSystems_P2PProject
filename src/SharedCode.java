@@ -12,8 +12,8 @@ public class SharedCode {
 
             PeerObject o = null;
 
-            if (peerListe.size() > i+1)
-                o = peerListe.get(i+1); //TODO Abfangen wenn index nicht vorhanden
+            if (peerListe.size() > i + 1)
+                o = peerListe.get(i + 1); //TODO Abfangen wenn index nicht vorhanden
 
             byte[] ip = {0, 0, 0, 0};
             byte[] port = {0, 0};
@@ -25,5 +25,31 @@ public class SharedCode {
         }
 
         return msg;
+    }
+
+
+    public static void deletePeers(ArrayList<PeerObject> peerListe, ArrayList<PeerObject> delete) {
+
+        for (PeerObject p : delete) {
+            modifyPeerList(peerListe, 2, p);
+        }
+    }
+
+    public static void modifyPeerList(ArrayList<PeerObject> peerList, int action, PeerObject insertORemove) {
+
+        synchronized (Variables.getObject("syn_object")) {
+            switch (action) {
+                case 1://Insert
+                    peerList.add(0, insertORemove);
+                    break;
+                case 2: //Delete
+                    peerList.remove(insertORemove);
+                    break;
+                default:
+                    Utilities.switchDefault();
+            }
+
+        }
+
     }
 }

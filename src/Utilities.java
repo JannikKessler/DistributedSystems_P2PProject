@@ -1,19 +1,26 @@
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 
 public class Utilities {
 
     public static String getServerIp() {
-        return "localhost";
+        return Variables.getStringValue("server_ip");
     }
 
-    public static char getServerPort() {
-        return 3334;
+    public static int getServerPort() {
+        return Variables.getIntValue("server_port");
     }
 
     public static int getPeerPort() {
-        return 3333;
+        return Variables.getIntValue("peer_port");
+    }
+
+    public static int getIpPackLength() {
+        return Variables.getIntValue("ippack_length");
     }
 
     public static byte[] getPeerPortAsByteArray() {
@@ -100,10 +107,40 @@ public class Utilities {
         return 0;
     }
 
-    public static void deletePeers(ArrayList<PeerObject> peerListe, ArrayList<PeerObject> delete) {
+    public static void printPeerList(ArrayList<PeerObject> peerListe) {
 
-        for (PeerObject p : delete) {
-            peerListe.remove(p);
+        System.out.println("Ausdruck PeerListe:");
+        for (PeerObject p : peerListe) {
+            System.out.println("Peer " + (peerListe.indexOf(p) + 1) + ": " + byteArrayToIp(p.getIp()));
         }
+        System.out.println();
+    }
+
+    private static String byteArrayToIp(byte[] ipAsByteArray) {
+        try {
+            InetAddress i = Inet4Address.getByAddress(ipAsByteArray);
+            return i.getHostAddress();
+        } catch (Exception e) {
+            errorMessage(e);
+        }
+        return null;
+    }
+
+    public static void switchDefault() {
+        System.err.println("Im Switch wurde ein falscher Parameter übergeben");
+    }
+
+    public static void printTimestamp(long timestamp) {
+
+        SimpleDateFormat s = new SimpleDateFormat("d.M.y H:m:s S");
+        System.out.println(s.format(new Date(timestamp)));
+    }
+
+    public static void fehlermeldungBenutzerdefiniert(String s) {
+        System.err.println(s);
+    }
+
+    public static void fehlermeldungVersion() {
+        fehlermeldungBenutzerdefiniert("Falsche Version übergeben");
     }
 }
