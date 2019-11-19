@@ -13,7 +13,7 @@ public class SharedCode {
             PeerObject o = null;
 
             if (peerListe.size() > i + 1)
-                o = peerListe.get(i + 1); //TODO Abfangen wenn index nicht vorhanden
+                o = peerListe.get(i + 1);
 
             byte[] ip = {0, 0, 0, 0};
             byte[] port = {0, 0};
