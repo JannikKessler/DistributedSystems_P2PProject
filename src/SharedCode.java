@@ -2,6 +2,9 @@ import java.util.ArrayList;
 
 public class SharedCode {
 
+    public static final int INSERT = 1;
+    public static final int REMOVE = 2;
+
     public static byte[] responeMsg(ArrayList<PeerObject> peerListe, int tag) {
 
         byte[] msg = new byte[26];
@@ -21,17 +24,31 @@ public class SharedCode {
                 ip = o.getIp();
                 port = o.getPort();
             }
-            Utilities.packIpPackage(msg, i * 6 + 2, ip, port);
+            packIpPackage(msg, i * 6 + 2, ip, port);
         }
 
         return msg;
     }
 
+    public static void packIpPackage(byte[] destination, int offset, byte[] ip, byte[] port) {
 
-    public static void deletePeers(ArrayList<PeerObject> peerListe, ArrayList<PeerObject> delete) {
+        try {
+
+            for (int i = 0; i < ip.length; i++)
+                destination[offset + i] = ip[i];
+
+            for (int i = 0; i < port.length; i++)
+                destination[offset + i + ip.length] = port[i];
+
+        } catch (Exception e) {
+            Utilities.errorMessage(e);
+        }
+    }
+
+    public static void deletePeersFromPeerList(ArrayList<PeerObject> peerListe, ArrayList<PeerObject> delete) {
 
         for (PeerObject p : delete) {
-            modifyPeerList(peerListe, 2, p);
+            modifyPeerList(peerListe, REMOVE, p);
         }
     }
 
@@ -39,10 +56,10 @@ public class SharedCode {
 
         synchronized (Variables.getObject("syn_object")) {
             switch (action) {
-                case 1://Insert
+                case INSERT:
                     peerList.add(0, insertORemove);
                     break;
-                case 2: //Delete
+                case REMOVE:
                     peerList.remove(insertORemove);
                     break;
                 default:

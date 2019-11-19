@@ -30,7 +30,7 @@ public class Server {
                             if (p.getTimestamp().getTime() < grenzwert)
                                 deleteList.add(p);
                         }
-                        SharedCode.deletePeers(peerList, deleteList);
+                        SharedCode.deletePeersFromPeerList(peerList, deleteList);
                         Utilities.printPeerList(peerList);
                         Thread.sleep(Variables.getIntValue("time_serverlist_clean"));
                     }
@@ -97,7 +97,7 @@ public class Server {
                 return;
             }
         }
-        SharedCode.modifyPeerList(peerList, 1, peerObject);
+        SharedCode.modifyPeerList(peerList, SharedCode.INSERT, peerObject);
     }
 
     public static void main(String[] args) {

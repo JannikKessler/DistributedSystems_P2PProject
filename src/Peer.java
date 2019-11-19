@@ -21,15 +21,13 @@ public class Peer {
 
             BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 
-            InetAddress inetAddress = InetAddress.getByName(Utilities.getServerIp());
-            entryServer = new PeerObject(inetAddress.getAddress(), Utilities.charToByteArray((char) Utilities.getServerPort()));
+            entryServer = new PeerObject(Utilities.getServerIpAsByteArray(), Utilities.getServerPortAsByteArray());
 
             System.out.println("Client gestartet");
             Utilities.printMyIp();
 
-
             while (!sendMyIp(entryServer, 1)) {
-                System.err.println("Socket konnte nicht erstellt werden\nNeuer Versuch in einer Sekunde");
+                System.err.println("EntryServer konnte nicht erreicht werden\nVersuche es erneut...");
                 Thread.sleep(1000);
             }
 
@@ -81,7 +79,7 @@ public class Peer {
                                     msg = new byte[6];
                                     msgErr2 = inFromPeer.read(msg, 0, 6);
                                     PeerObject p = new PeerObject(msg);
-                                    SharedCode.modifyPeerList(peerList, 1, p);
+                                    SharedCode.modifyPeerList(peerList, SharedCode.INSERT, p);
                                     p.getOutToPeerStream().write(SharedCode.responeMsg(peerList, 4));
                                     break;
                                 case 4:
@@ -114,11 +112,12 @@ public class Peer {
             byte[] msg = new byte[8];
             msg[0] = 5;
             msg[1] = 0;
-            Utilities.packIpPackage(msg, 2, Utilities.getMyIpAsByteArray(), Utilities.getPeerPortAsByteArray());
+            SharedCode.packIpPackage(msg, 2, Utilities.getMyIpAsByteArray(), Utilities.getPeerPortAsByteArray());
             entryServer.getOutToPeerStream().write(msg);
             entryServer.closeStreams();
         } catch (Exception e) {
-            Utilities.errorMessage(e);
+            //Utilities.errorMessage(e); Fehlermeldungen werden hier nicht ausgegeben, da KeepAlive
+            //sowieso durchgängig gesendet wird; da darf auch ein Packet mal nicht ankommen
         }
     }
 
@@ -143,7 +142,7 @@ public class Peer {
             if (!Utilities.isArrayEmty(ipPack)) {
                 PeerObject po = new PeerObject(ipPack);
                 if (tag == 4 || sendMyIp(po, 3))
-                    SharedCode.modifyPeerList(peerList, 1, po);
+                    SharedCode.modifyPeerList(peerList, SharedCode.INSERT, po);
                 po.closeStreams();
                 peerList.add(po);
             }
@@ -156,7 +155,7 @@ public class Peer {
             byte[] entryMsg = new byte[8];
             entryMsg[0] = (byte) tag; //Tag
             entryMsg[1] = 0; //Version
-            Utilities.packIpPackage(entryMsg, 2, Utilities.getMyIpAsByteArray(), Utilities.getPeerPortAsByteArray());
+            SharedCode.packIpPackage(entryMsg, 2, Utilities.getMyIpAsByteArray(), Utilities.getPeerPortAsByteArray());
             po.getOutToPeerStream().write(entryMsg);
             return true;
         } catch (Exception e) {

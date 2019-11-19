@@ -2,7 +2,6 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Date;
 
 public class Utilities {
@@ -27,9 +26,13 @@ public class Utilities {
         return charToByteArray((char) getPeerPort());
     }
 
+    public static byte[] getServerPortAsByteArray() {
+        return charToByteArray((char) getServerPort());
+    }
+
     public static void printMyIp() {
         try {
-            System.out.println(InetAddress.getLocalHost().getHostAddress());
+            System.out.println(InetAddress.getLocalHost().getHostAddress() + "\n");
         } catch (Exception e) {
             errorMessage(e);
         }
@@ -37,21 +40,6 @@ public class Utilities {
 
     public static void errorMessage(Exception e) {
         e.printStackTrace();
-    }
-
-    public static void packIpPackage(byte[] destination, int offset, byte[] ip, byte[] port) {
-
-        try {
-
-            for (int i = 0; i < ip.length; i++)
-                destination[offset + i] = ip[i];
-
-            for (int i = 0; i < port.length; i++)
-                destination[offset + i + ip.length] = port[i];
-
-        } catch (Exception e) {
-            errorMessage(e);
-        }
     }
 
     public static byte[] charToByteArray(char i) {
@@ -66,26 +54,34 @@ public class Utilities {
         return (char) (array[1] | array[0] << 8);
     }
 
-    public static void printByteArray(byte[] array) {
+    public static void printByteArrayAsBinaryCode(byte[] array) {
 
-        for (int i = 0; i < array.length; i++) {
-            System.out.print(String.format("%8s", Integer.toBinaryString(array[i] & 0xFF)).replace(' ', '0') + " ");
+        for (byte b : array) {
+            System.out.print(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0') + " ");
         }
         System.out.println();
     }
 
     public static boolean isArrayEmty(byte[] array) {
 
-        for (int i = 0; i < array.length; i++) {
+        for (byte b : array) {
 
-            if (array[i] != 0)
+            if (b != 0)
                 return false;
         }
-
         return true;
     }
 
-    public static InetAddress getInetAdress(byte[] ip) {
+    public static InetAddress getInetAdressFromString(String ip) {
+        try {
+            return InetAddress.getByName(ip);
+        } catch (Exception e) {
+            errorMessage(e);
+        }
+        return null;
+    }
+
+    public static InetAddress getInetAdressFromByteArray(byte[] ip) {
         try {
             return InetAddress.getByAddress(ip);
         } catch (Exception e) {
@@ -101,10 +97,6 @@ public class Utilities {
             errorMessage(e);
         }
         return null;
-    }
-
-    public static int getPortFromByteArray() {
-        return 0;
     }
 
     public static void printPeerList(ArrayList<PeerObject> peerListe) {
@@ -142,5 +134,9 @@ public class Utilities {
 
     public static void fehlermeldungVersion() {
         fehlermeldungBenutzerdefiniert("Falsche Version übergeben");
+    }
+
+    public static byte[] getServerIpAsByteArray() {
+        return getInetAdressFromString(getServerIp()).getAddress();
     }
 }

@@ -33,7 +33,7 @@ public class PeerObject {
 
     private void createSocket() throws Exception {
 
-        socket = new Socket(Utilities.getInetAdress(ip), Utilities.byteArrayToChar(port));
+        socket = new Socket(Utilities.getInetAdressFromByteArray(ip), Utilities.byteArrayToChar(port));
     }
 
     private boolean isSocketClosed() {
