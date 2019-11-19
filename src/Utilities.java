@@ -1,5 +1,6 @@
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.util.ArrayList;
 
 public class Utilities {
 
@@ -13,6 +14,10 @@ public class Utilities {
 
     public static int getPeerPort() {
         return 3333;
+    }
+
+    public static byte[] getPeerPortAsByteArray() {
+        return charToByteArray((char) getPeerPort());
     }
 
     public static void printMyIp() {
@@ -64,9 +69,9 @@ public class Utilities {
 
     public static boolean isArrayEmty(byte[] array) {
 
-        for (int i = 0; i<array.length; i++) {
+        for (int i = 0; i < array.length; i++) {
 
-            if (array[i] !=0)
+            if (array[i] != 0)
                 return false;
         }
 
@@ -82,7 +87,23 @@ public class Utilities {
         return null;
     }
 
+    public static byte[] getMyIpAsByteArray() {
+        try {
+            return InetAddress.getLocalHost().getAddress();
+        } catch (Exception e) {
+            errorMessage(e);
+        }
+        return null;
+    }
+
     public static int getPortFromByteArray() {
         return 0;
+    }
+
+    public static void deletePeers(ArrayList<PeerObject> peerListe, ArrayList<PeerObject> delete) {
+
+        for (PeerObject p : delete) {
+            peerListe.remove(p);
+        }
     }
 }
