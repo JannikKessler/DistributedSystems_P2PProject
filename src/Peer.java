@@ -21,7 +21,7 @@ public class Peer {
 
             BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
 
-            InetAddress inetAddress = InetAddress.getLocalHost(); //Eventuel muss ausgetauscht werden durch Server IP
+            InetAddress inetAddress = InetAddress.getByName(Utilities.getServerIp());
             entryServer = new PeerObject(inetAddress.getAddress(), Utilities.charToByteArray(Utilities.getServerPort()));
 
             System.out.println("Client gestartet");
