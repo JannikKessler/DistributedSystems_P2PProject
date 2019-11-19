@@ -101,7 +101,7 @@ public class Peer {
             byte[] msg = new byte[8];
             msg[0] = 5;
             msg[1] = 0;
-            Utilities.packIpPackage(msg, 3, Utilities.getMyIpAsByteArray(), Utilities.getPeerPortAsByteArray());
+            Utilities.packIpPackage(msg, 2, Utilities.getMyIpAsByteArray(), Utilities.getPeerPortAsByteArray());
             entryServer.getOutToPeerStream().write(msg);
             entryServer.closeStreams();
         } catch (Exception e) {
