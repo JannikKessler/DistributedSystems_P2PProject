@@ -126,7 +126,7 @@ public class Peer {
         int tag = entyResponeMessage[0];
         int version = entyResponeMessage[1];
 
-        if (!(tag == 3 || tag == 4)) {
+        if (!(tag == 2 || tag == 4)) {
             Utilities.fehlermeldungBenutzerdefiniert("Fehlerhafter tag übergeben");
             return;
         }
@@ -141,9 +141,10 @@ public class Peer {
             byte[] ipPack = Arrays.copyOfRange(entyResponeMessage, i, i + Utilities.getIpPackLength());
             if (!Utilities.isArrayEmty(ipPack)) {
                 PeerObject po = new PeerObject(ipPack);
-                if (tag == 4 || sendMyIp(po, 3))
+                if (tag == 4 || sendMyIp(po, 3)) {
                     SharedCode.modifyPeerList(peerList, SharedCode.INSERT, po);
-                po.closeStreams();
+                    po.closeStreams();
+                }
                 peerList.add(po);
             }
         }

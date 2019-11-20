@@ -69,7 +69,7 @@ public class Server {
                                     msgErr = inFromClient.read(msg, 0, 6);
                                     addPeer(new PeerObject(msg));
                                     if (tag == 1)
-                                        outToClient.write(SharedCode.responeMsg(peerList, 3));
+                                        outToClient.write(SharedCode.responeMsg(peerList, 2));
                                     break;
                                 default:
                                     Utilities.switchDefault();
