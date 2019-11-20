@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 
-public class Peer {
+public class Peer extends Application {
 
     private PeerObject entryServer;
     private ArrayList<PeerObject> peerList;
@@ -31,7 +31,7 @@ public class Peer {
         peerList = new ArrayList<>();
         myPort = port;
         Variables.putObject("syn_object", this);
-        gui = new Gui<>("Peer " + Utilities.getMyIpAsString() + ":" + port, location, this);
+        gui = new Gui("Peer " + Utilities.getMyIpAsString() + ":" + port, location, this);
     }
 
     public void setMyPort(int myPort) {

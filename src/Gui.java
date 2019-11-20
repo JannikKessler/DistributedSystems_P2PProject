@@ -4,12 +4,12 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-public class Gui<T> extends JFrame {
+public class Gui extends JFrame {
 
     private JLabel lblHeadline;
     private JTextArea peerList;
 
-    public Gui(String headline, Point location, T object) {
+    public Gui(String headline, Point location, Application application) {
 
         setTitle(headline);
         setSize(Utilities.getGuiSize());
@@ -21,10 +21,7 @@ public class Gui<T> extends JFrame {
             public void windowClosing(WindowEvent e) {
 
                 dispose();
-                if (object instanceof Peer)
-                    ((Peer) object).exit();
-                else if (object instanceof Server)
-                    ((Server) object).exit();
+                application.exit();
             }
         });
 

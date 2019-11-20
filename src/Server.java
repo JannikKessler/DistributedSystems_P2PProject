@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
-public class Server {
+public class Server extends Application {
 
     private Gui gui;
     private ArrayList<PeerObject> peerList;
@@ -15,7 +15,7 @@ public class Server {
     public Server() {
         peerList = new ArrayList<>();
         Variables.putObject("syn_object", this);
-        gui = new Gui<>("Server " + Utilities.getMyIpAsString() + ":" + Utilities.getServerPort(), null, this);
+        gui = new Gui("Server " + Utilities.getMyIpAsString() + ":" + Utilities.getServerPort(), null, this);
     }
 
     public void startServer() {
