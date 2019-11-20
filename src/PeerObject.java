@@ -63,7 +63,8 @@ public class PeerObject {
 
     public void closeStreams() {
         try {
-            socket.close();
+            if (socket != null && !socket.isClosed())
+                socket.close();
         } catch (Exception e) {
             Utilities.errorMessage(e);
         }

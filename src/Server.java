@@ -67,7 +67,7 @@ public class Server {
                                 case 5:
                                     msg = new byte[6];
                                     msgErr = inFromClient.read(msg, 0, 6);
-                                    SharedCode.addPeer(new PeerObject(msg), peerList);
+                                    SharedCode.addPeer(peerList, new PeerObject(msg));
                                     if (tag == 1)
                                         outToClient.write(SharedCode.responeMsg(peerList, 2));
                                     break;

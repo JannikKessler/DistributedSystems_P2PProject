@@ -70,7 +70,7 @@ public class SharedCode {
         }
     }
 
-    public static void addPeer(PeerObject peerObject, ArrayList<PeerObject> peerList) {
+    public static void addPeer(ArrayList<PeerObject> peerList, PeerObject peerObject) {
         for (PeerObject p : peerList) {
             if (Arrays.equals(p.getIp(), peerObject.getIp()) && Arrays.equals(p.getPort(), peerObject.getPort())) {
                 p.updateTimestamp();

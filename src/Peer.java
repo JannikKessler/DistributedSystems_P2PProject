@@ -82,7 +82,7 @@ public class Peer {
                                     msg = new byte[6];
                                     msgErr2 = inFromPeer.read(msg, 0, 6);
                                     PeerObject p = new PeerObject(msg);
-                                    SharedCode.modifyPeerList(peerList, SharedCode.INSERT, p);
+                                    SharedCode.addPeer(peerList, p);
                                     p.getOutToPeerStream().write(SharedCode.responeMsg(peerList, 4));
                                     break;
                                 case 4:
@@ -149,11 +149,10 @@ public class Peer {
 
                 PeerObject po = new PeerObject(ipPack);
 
-                if (tag == 4 || (tag == 2 && sendMyIp(po, 3)))
-                    SharedCode.addPeer(po, peerList);
+                if (tag == 4 || sendMyIp(po, 3))
+                    SharedCode.addPeer(peerList, po);
 
-                if (tag == 2)
-                    po.closeStreams();
+                po.closeStreams();
             }
         }
     }
@@ -176,7 +175,7 @@ public class Peer {
 
         try {
             Peer p = new Peer();
-            p.setMyPort(3338);
+            //p.setMyPort(3337);
             p.startPeer();
 
         } catch (Exception e) {
