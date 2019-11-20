@@ -112,9 +112,8 @@ public class Utilities {
         for (PeerObject p : peerListe) {
             ausdruck += "Peer " + (peerListe.indexOf(p) + 1) + ": " + byteArrayToIp(p.getIp()) + ":" + (int) Utilities.byteArrayToChar(p.getPort()) + "\n";
         }
-        ausdruck += "\n";
         gui.setPeerList(ausdruck);
-        System.out.println(ausdruck);
+        System.out.println(ausdruck + "\n");
     }
 
     private static String byteArrayToIp(byte[] ipAsByteArray) {

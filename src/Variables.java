@@ -11,10 +11,10 @@ public class Variables {
         variables.put("server_port", 3334);
         variables.put("standard_peer_port", 3333);
         variables.put("ippack_length", 6);
-        variables.put("time_serverlist_clean", 6000);
-        variables.put("time_server_max_without_keep_alive", 5000);
-        variables.put("time_send_keep_alive", 2500);
-        variables.put("gui_size", new Dimension(250, 200));
+        variables.put("time_serverlist_clean", 60000);
+        variables.put("time_server_max_without_keep_alive", 55000);
+        variables.put("time_send_keep_alive", 25000);
+        variables.put("gui_size", new Dimension(250, 250));
         variables.put("font", new Font("Calibri", Font.PLAIN, 16));
         variables.put("font_headline", new Font("Calibri", Font.BOLD, 20));
     }

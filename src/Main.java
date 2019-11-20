@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -6,6 +7,8 @@ public class Main {
     public static void main(String[] args) {
 
         try {
+
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
             Thread st = new Thread(() -> {
                 Server s = new Server();
@@ -40,7 +43,7 @@ public class Main {
                         p.startPeer();
                     });
                     t.start();
-                    Thread.sleep(1500);
+                    Thread.sleep(1000);
                 }
             }
 
