@@ -19,7 +19,6 @@ public class Gui extends JFrame {
 
             @Override
             public void windowClosing(WindowEvent e) {
-
                 dispose();
                 application.exit();
             }
