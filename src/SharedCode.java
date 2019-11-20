@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class SharedCode {
 
@@ -67,6 +68,15 @@ public class SharedCode {
             }
 
         }
+    }
 
+    public static void addPeer(PeerObject peerObject, ArrayList<PeerObject> peerList) {
+        for (PeerObject p : peerList) {
+            if (Arrays.equals(p.getIp(), peerObject.getIp()) && Arrays.equals(p.getPort(), peerObject.getPort())) {
+                p.updateTimestamp();
+                return;
+            }
+        }
+        SharedCode.modifyPeerList(peerList, SharedCode.INSERT, peerObject);
     }
 }

@@ -1,5 +1,4 @@
 import java.io.*;
-import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -14,6 +13,10 @@ public class Peer {
     public Peer() {
         peerList = new ArrayList<>();
         Variables.putObject("syn_object", this);
+    }
+
+    public void setMyPort(int myPort) {
+        Variables.putInt("peer_port", myPort);
     }
 
     private void startPeer() {
@@ -84,8 +87,11 @@ public class Peer {
                                     break;
                                 case 4:
                                     msg = new byte[26];
-                                    msgErr2 = inFromPeer.read(msg, 0, 26);
+                                    msg[0] = (byte) tag;
+                                    msg[1] = (byte) version;
+                                    msgErr2 = inFromPeer.read(msg, 2, 24);
                                     processResponeMessage(msg);
+                                    break;
                                 default:
                                     Utilities.switchDefault();
                             }
@@ -127,7 +133,7 @@ public class Peer {
         int version = entyResponeMessage[1];
 
         if (!(tag == 2 || tag == 4)) {
-            Utilities.fehlermeldungBenutzerdefiniert("Fehlerhafter tag übergeben");
+            Utilities.fehlermeldungBenutzerdefiniert("Fehlerhafter tag übergeben: " + tag);
             return;
         }
 
@@ -140,12 +146,14 @@ public class Peer {
 
             byte[] ipPack = Arrays.copyOfRange(entyResponeMessage, i, i + Utilities.getIpPackLength());
             if (!Utilities.isArrayEmty(ipPack)) {
+
                 PeerObject po = new PeerObject(ipPack);
-                if (tag == 4 || sendMyIp(po, 3)) {
-                    SharedCode.modifyPeerList(peerList, SharedCode.INSERT, po);
+
+                if (tag == 4 || (tag == 2 && sendMyIp(po, 3)))
+                    SharedCode.addPeer(po, peerList);
+
+                if (tag == 2)
                     po.closeStreams();
-                }
-                peerList.add(po);
             }
         }
     }
@@ -165,9 +173,14 @@ public class Peer {
     }
 
     public static void main(String[] args) {
-        Peer p = new Peer();
-        p.startPeer();
+
+        try {
+            Peer p = new Peer();
+            p.setMyPort(3338);
+            p.startPeer();
+
+        } catch (Exception e) {
+            Utilities.errorMessage(e);
+        }
     }
-
-
 }

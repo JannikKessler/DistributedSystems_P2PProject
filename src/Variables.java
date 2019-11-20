@@ -27,6 +27,10 @@ public class Variables {
         variables.put(name, o);
     }
 
+    public static void putInt(String name, int zahl) {
+        variables.put(name, zahl);
+    }
+
     public static Object getObject(String name) {
         return variables.get(name);
     }

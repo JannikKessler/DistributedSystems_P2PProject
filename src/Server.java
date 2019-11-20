@@ -67,7 +67,7 @@ public class Server {
                                 case 5:
                                     msg = new byte[6];
                                     msgErr = inFromClient.read(msg, 0, 6);
-                                    addPeer(new PeerObject(msg));
+                                    SharedCode.addPeer(new PeerObject(msg), peerList);
                                     if (tag == 1)
                                         outToClient.write(SharedCode.responeMsg(peerList, 2));
                                     break;
@@ -88,16 +88,6 @@ public class Server {
         } catch (Exception e) {
             Utilities.errorMessage(e);
         }
-    }
-
-    private void addPeer(PeerObject peerObject) {
-        for (PeerObject p : peerList) {
-            if (Arrays.equals(p.getIp(), peerObject.getIp())) {
-                p.updateTimestamp();
-                return;
-            }
-        }
-        SharedCode.modifyPeerList(peerList, SharedCode.INSERT, peerObject);
     }
 
     public static void main(String[] args) {

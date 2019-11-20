@@ -103,7 +103,7 @@ public class Utilities {
 
         System.out.println("Ausdruck PeerListe:");
         for (PeerObject p : peerListe) {
-            System.out.println("Peer " + (peerListe.indexOf(p) + 1) + ": " + byteArrayToIp(p.getIp()));
+            System.out.println("Peer " + (peerListe.indexOf(p) + 1) + ": " + byteArrayToIp(p.getIp()) + ":" + (int) Utilities.byteArrayToChar(p.getPort()));
         }
         System.out.println();
     }
