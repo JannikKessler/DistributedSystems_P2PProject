@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.util.HashMap;
 
 public class Variables {
@@ -8,11 +9,14 @@ public class Variables {
         variables = new HashMap<>();
         variables.put("server_ip", "localhost");
         variables.put("server_port", 3334);
-        variables.put("peer_port", 3333);
+        variables.put("standard_peer_port", 3333);
         variables.put("ippack_length", 6);
         variables.put("time_serverlist_clean", 6000);
         variables.put("time_server_max_without_keep_alive", 5000);
         variables.put("time_send_keep_alive", 2500);
+        variables.put("gui_size", new Dimension(250, 200));
+        variables.put("font", new Font("Calibri", Font.PLAIN, 16));
+        variables.put("font_headline", new Font("Calibri", Font.BOLD, 20));
     }
 
     public static String getStringValue(String name) {

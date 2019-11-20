@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -9,17 +10,35 @@ public class Peer {
 
     private PeerObject entryServer;
     private ArrayList<PeerObject> peerList;
+    private Gui gui;
+    private int myPort;
+    private Thread keepAlive;
+    private boolean exit = false;
 
     public Peer() {
+        init(Utilities.getStandardPeerPort(), null);
+    }
+
+    public Peer(int port) {
+        init(port, null);
+    }
+
+    public Peer(int port, Point location) {
+        init(port, location);
+    }
+
+    private void init(int port, Point location) {
         peerList = new ArrayList<>();
+        myPort = port;
         Variables.putObject("syn_object", this);
+        gui = new Gui<>("Peer " + Utilities.getMyIpAsString() + ":" + port, location, this);
     }
 
     public void setMyPort(int myPort) {
         Variables.putInt("peer_port", myPort);
     }
 
-    private void startPeer() {
+    public void startPeer() {
         try {
 
             BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
@@ -40,12 +59,15 @@ public class Peer {
             processResponeMessage(entyResponeMessage);
             entryServer.closeStreams();
 
-            Thread keepAlive = new Thread(() -> {
+            keepAlive = new Thread(() -> {
                 while (true) {
                     try {
                         sendKeepAlive();
-                        Utilities.printPeerList(peerList);
+                        Utilities.printPeerList(gui, peerList);
                         Thread.sleep(Variables.getIntValue("time_send_keep_alive"));
+
+                        if (exit)
+                            return;
                     } catch (Exception e) {
                         Utilities.errorMessage(e);
                     }
@@ -53,7 +75,7 @@ public class Peer {
             });
             keepAlive.start();
 
-            ServerSocket myServer = new ServerSocket(Utilities.getPeerPort());
+            ServerSocket myServer = new ServerSocket(myPort);
 
             while (true) {
 
@@ -118,12 +140,11 @@ public class Peer {
             byte[] msg = new byte[8];
             msg[0] = 5;
             msg[1] = 0;
-            SharedCode.packIpPackage(msg, 2, Utilities.getMyIpAsByteArray(), Utilities.getPeerPortAsByteArray());
+            SharedCode.packIpPackage(msg, 2, Utilities.getMyIpAsByteArray(), Utilities.convertPortToByteArray(myPort));
             entryServer.getOutToPeerStream().write(msg);
             entryServer.closeStreams();
         } catch (Exception e) {
-            //Utilities.errorMessage(e); Fehlermeldungen werden hier nicht ausgegeben, da KeepAlive
-            //sowieso durchgängig gesendet wird; da darf auch ein Packet mal nicht ankommen
+            Utilities.errorMessage(e);
         }
     }
 
@@ -163,7 +184,7 @@ public class Peer {
             byte[] entryMsg = new byte[8];
             entryMsg[0] = (byte) tag; //Tag
             entryMsg[1] = 0; //Version
-            SharedCode.packIpPackage(entryMsg, 2, Utilities.getMyIpAsByteArray(), Utilities.getPeerPortAsByteArray());
+            SharedCode.packIpPackage(entryMsg, 2, Utilities.getMyIpAsByteArray(), Utilities.convertPortToByteArray(myPort));
             po.getOutToPeerStream().write(entryMsg);
             return true;
         } catch (Exception e) {
@@ -171,15 +192,12 @@ public class Peer {
         }
     }
 
+    public void exit() {
+        exit = true;
+    }
+
     public static void main(String[] args) {
-
-        try {
-            Peer p = new Peer();
-            //p.setMyPort(3337);
-            p.startPeer();
-
-        } catch (Exception e) {
-            Utilities.errorMessage(e);
-        }
+        Peer p = new Peer();
+        p.startPeer();
     }
 }

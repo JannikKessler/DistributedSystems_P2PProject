@@ -7,21 +7,25 @@ import java.util.Date;
 
 public class Server {
 
+    private Gui gui;
     private ArrayList<PeerObject> peerList;
+    private Thread cleanPeerList;
+    private boolean exit;
 
     public Server() {
         peerList = new ArrayList<>();
         Variables.putObject("syn_object", this);
+        gui = new Gui<>("Server " + Utilities.getMyIpAsString() + ":" + Utilities.getServerPort(), null, this);
     }
 
-    private void startServer() {
+    public void startServer() {
 
         try {
             ServerSocket serverSocket = new ServerSocket(Utilities.getServerPort());
             System.out.println("Server gestartet");
             Utilities.printMyIp();
 
-            Thread cleanPeerList = new Thread(() -> {
+            cleanPeerList = new Thread(() -> {
                 try {
                     while (true) {
                         long grenzwert = new Date().getTime() - Variables.getIntValue("time_server_max_without_keep_alive");
@@ -31,8 +35,11 @@ public class Server {
                                 deleteList.add(p);
                         }
                         SharedCode.deletePeersFromPeerList(peerList, deleteList);
-                        Utilities.printPeerList(peerList);
+                        Utilities.printPeerList(gui, peerList);
                         Thread.sleep(Variables.getIntValue("time_serverlist_clean"));
+
+                        if (exit)
+                            return;
                     }
                 } catch (Exception e) {
                     Utilities.errorMessage(e);
@@ -90,8 +97,13 @@ public class Server {
         }
     }
 
+    public void exit() {
+        exit = true;
+    }
+
     public static void main(String[] args) {
         Server s = new Server();
         s.startServer();
     }
+
 }

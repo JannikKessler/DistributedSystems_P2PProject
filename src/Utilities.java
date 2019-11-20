@@ -1,3 +1,4 @@
+import java.awt.*;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
@@ -14,28 +15,33 @@ public class Utilities {
         return Variables.getIntValue("server_port");
     }
 
-    public static int getPeerPort() {
-        return Variables.getIntValue("peer_port");
+    public static int getStandardPeerPort() {
+        return Variables.getIntValue("standard_peer_port");
     }
 
     public static int getIpPackLength() {
         return Variables.getIntValue("ippack_length");
     }
 
-    public static byte[] getPeerPortAsByteArray() {
-        return charToByteArray((char) getPeerPort());
+    public static byte[] convertPortToByteArray(int port) {
+        return charToByteArray((char) port);
     }
 
     public static byte[] getServerPortAsByteArray() {
         return charToByteArray((char) getServerPort());
     }
 
-    public static void printMyIp() {
+    public static String getMyIpAsString() {
         try {
-            System.out.println(InetAddress.getLocalHost().getHostAddress() + "\n");
+            return InetAddress.getLocalHost().getHostAddress();
         } catch (Exception e) {
             errorMessage(e);
         }
+        return null;
+    }
+
+    public static void printMyIp() {
+        System.out.println(getMyIpAsString() + "\n");
     }
 
     public static void errorMessage(Exception e) {
@@ -99,13 +105,16 @@ public class Utilities {
         return null;
     }
 
-    public static void printPeerList(ArrayList<PeerObject> peerListe) {
+    public static void printPeerList(Gui gui, ArrayList<PeerObject> peerListe) {
 
-        System.out.println("Ausdruck PeerListe:");
+        String ausdruck = "";
+        ausdruck += "Ausdruck PeerListe:\n";
         for (PeerObject p : peerListe) {
-            System.out.println("Peer " + (peerListe.indexOf(p) + 1) + ": " + byteArrayToIp(p.getIp()) + ":" + (int) Utilities.byteArrayToChar(p.getPort()));
+            ausdruck += "Peer " + (peerListe.indexOf(p) + 1) + ": " + byteArrayToIp(p.getIp()) + ":" + (int) Utilities.byteArrayToChar(p.getPort()) + "\n";
         }
-        System.out.println();
+        ausdruck += "\n";
+        gui.setPeerList(ausdruck);
+        System.out.println(ausdruck);
     }
 
     private static String byteArrayToIp(byte[] ipAsByteArray) {
@@ -138,5 +147,21 @@ public class Utilities {
 
     public static byte[] getServerIpAsByteArray() {
         return getInetAdressFromString(getServerIp()).getAddress();
+    }
+
+    public static Dimension getGuiSize() {
+        return (Dimension) Variables.getObject("gui_size");
+    }
+
+    public static Font getNormalFont() {
+        return (Font) Variables.getObject("font");
+    }
+
+    public static Font getHeadlineFont() {
+        return (Font) Variables.getObject("font_headline");
+    }
+
+    public static Dimension getScreenDimension() {
+        return Toolkit.getDefaultToolkit().getScreenSize();
     }
 }
