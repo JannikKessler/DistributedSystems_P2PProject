@@ -24,6 +24,9 @@ public class Server extends Application {
             System.out.println("Server gestartet");
             Utilities.printMyIp();
 
+            AnzeigeThread at = new AnzeigeThread(gui, peerList);
+            at.start();
+
             cleanPeerList = new Thread(() -> {
                 try {
                     while (true) {
@@ -34,7 +37,6 @@ public class Server extends Application {
                                 deleteList.add(p);
                         }
                         SharedCode.deletePeersFromPeerList(peerList, deleteList);
-                        Utilities.printPeerList(gui, peerList);
                         Thread.sleep(Variables.getIntValue("time_serverlist_clean"));
 
                         if (exit)

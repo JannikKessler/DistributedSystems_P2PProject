@@ -105,7 +105,7 @@ public class Utilities {
         return null;
     }
 
-    public static void printPeerList(Gui gui, ArrayList<PeerObject> peerListe) {
+    public static void printPeerList(Gui gui, ArrayList<PeerObject> peerListe, boolean printOnConsole) {
 
         String ausdruck = "";
         ausdruck += "Ausdruck PeerListe:\n";
@@ -113,7 +113,13 @@ public class Utilities {
             ausdruck += "Peer " + (peerListe.indexOf(p) + 1) + ": " + byteArrayToIp(p.getIp()) + ":" + (int) Utilities.byteArrayToChar(p.getPort()) + "\n";
         }
         gui.setPeerList(ausdruck);
-        System.out.println(ausdruck + "\n");
+
+        if (printOnConsole)
+            System.out.println(ausdruck + "\n");
+    }
+
+    public static int getScreenUpdateTime() {
+        return Variables.getIntValue("screen_update_time");
     }
 
     private static String byteArrayToIp(byte[] ipAsByteArray) {

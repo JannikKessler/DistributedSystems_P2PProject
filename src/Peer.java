@@ -59,11 +59,13 @@ public class Peer extends Application {
             processResponeMessage(entyResponeMessage);
             entryServer.closeStreams();
 
+            AnzeigeThread at = new AnzeigeThread(gui, peerList);
+            at.start();
+
             keepAlive = new Thread(() -> {
                 while (true) {
                     try {
                         sendKeepAlive();
-                        Utilities.printPeerList(gui, peerList);
                         Thread.sleep(Variables.getIntValue("time_send_keep_alive"));
 
                         if (exit)
