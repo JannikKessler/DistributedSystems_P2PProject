@@ -7,7 +7,7 @@ public class Variables {
 
     static {
         variables = new HashMap<>();
-        variables.put("server_ip", "192.168.43.106");
+        variables.put("server_ip", "localhost");
         variables.put("server_port", 3333);
         variables.put("standard_peer_port", 3333);
         variables.put("ippack_length", 6);
