@@ -9,7 +9,7 @@ public class Gui extends JFrame {
     private JLabel lblHeadline;
     private JTextArea peerList;
 
-    public Gui(String headline, Point location, Application application) {
+    public Gui(String headline, Point location, Peer application) {
 
         setTitle(headline);
         setSize(Utilities.getGuiSize());

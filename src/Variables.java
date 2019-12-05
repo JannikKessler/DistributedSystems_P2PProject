@@ -8,9 +8,8 @@ public class Variables {
     static {
         variables = new HashMap<>();
         variables.put("server_ip", "localhost");
-        variables.put("server_port", 3333);
-        variables.put("standard_peer_port", 3333);
-        variables.put("ippack_length", 6);
+        variables.put("standard_port", 3333);
+        variables.put("peer_pack_length", 8);
         variables.put("time_serverlist_clean", 60000);
         variables.put("time_server_max_without_keep_alive", 55000);
         variables.put("time_send_keep_alive", 25000);

@@ -3,6 +3,7 @@ import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 
 public class Utilities {
@@ -11,24 +12,12 @@ public class Utilities {
         return Variables.getStringValue("server_ip");
     }
 
-    public static int getServerPort() {
-        return Variables.getIntValue("server_port");
+    public static int getStandardPort() {
+        return Variables.getIntValue("standard_port");
     }
 
-    public static int getStandardPeerPort() {
-        return Variables.getIntValue("standard_peer_port");
-    }
-
-    public static int getIpPackLength() {
-        return Variables.getIntValue("ippack_length");
-    }
-
-    public static byte[] convertPortToByteArray(int port) {
-        return charToByteArray((char) port);
-    }
-
-    public static byte[] getServerPortAsByteArray() {
-        return charToByteArray((char) getServerPort());
+    public static int getPeerPackLength() {
+        return Variables.getIntValue("peer_pack_length");
     }
 
     public static String getMyIpAsString() {
@@ -110,7 +99,7 @@ public class Utilities {
         String ausdruck = "";
         ausdruck += "Ausdruck PeerListe:\n";
         for (PeerObject p : peerListe) {
-            ausdruck += "Peer " + (peerListe.indexOf(p) + 1) + ": " + byteArrayToIp(p.getIp()) + ":" + (int) Utilities.byteArrayToChar(p.getPort()) + "\n";
+            ausdruck += "Peer " + (peerListe.indexOf(p) + 1) + ": " + byteArrayToIp(p.getIp()) + ":" + (int) Utilities.byteArrayToChar(p.getPort()) + "; " + (int) Utilities.byteArrayToChar(p.getId()) + "\n";
         }
         gui.setPeerList(ausdruck);
 
@@ -122,7 +111,7 @@ public class Utilities {
         return Variables.getIntValue("screen_update_time");
     }
 
-    private static String byteArrayToIp(byte[] ipAsByteArray) {
+    public static String byteArrayToIp(byte[] ipAsByteArray) {
         try {
             InetAddress i = Inet4Address.getByAddress(ipAsByteArray);
             return i.getHostAddress();
@@ -140,6 +129,12 @@ public class Utilities {
 
         SimpleDateFormat s = new SimpleDateFormat("d.M.y H:m:s S");
         System.out.println(s.format(new Date(timestamp)));
+    }
+
+    public static byte[] addAll(final byte[] array1, byte[] array2) {
+        byte[] joinedArray = Arrays.copyOf(array1, array1.length + array2.length);
+        System.arraycopy(array2, 0, joinedArray, array1.length, array2.length);
+        return joinedArray;
     }
 
     public static void fehlermeldungBenutzerdefiniert(String s) {
@@ -168,5 +163,9 @@ public class Utilities {
 
     public static Dimension getScreenDimension() {
         return Toolkit.getDefaultToolkit().getScreenSize();
+    }
+
+    public static byte[] getStandardPortAsByteArray() {
+        return charToByteArray((char) getStandardPort());
     }
 }
