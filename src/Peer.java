@@ -164,6 +164,23 @@ public class Peer {
                                 inFromPeer.read(msg, 0, 8);
                                 processIAmAliveMsg(msg);
                                 break;
+                            case 6:
+                                //TODO NodeSearchMsg
+                                msg = new byte[0];
+                                //read
+                                processNodeSearchMsg(msg);
+                                break;
+                            case 7:
+                                //TODO IAmFound
+                                msg = new byte[0];
+                                //read
+                                processIAmFoundMsg(msg);
+                                break;
+                            case 8:
+                                //TODO MsgMsg
+                                msg = new byte[0];
+                                processMsgMsg(msg);
+                                break;
                             default:
                                 Utilities.switchDefault();
                         }
@@ -271,8 +288,6 @@ public class Peer {
         msg[0] = (byte) 3; //Tag
         msg[1] = (byte) 1; //Version
         packPeerPackage(msg, 2, myPeer.getIp(), myPeer.getPort(), myPeer.getId());
-        //System.out.println("te12: " + (int) Utilities.byteArrayToChar(myPeer.getId()));
-        //Utilities.printByteArrayAsBinaryCode(msg);
         return msg;
     }
 
@@ -337,10 +352,56 @@ public class Peer {
         addPeer(new PeerObject(msg));
     }
 
+    private byte[] createNodeSearchMsg() {
+        //TODO
+        return null;
+    }
+
+    private void processNodeSearchMsg(byte[] msg) {
+        //TODO Msg wird verarbeitet
+
+        //Fall 1 Ich bin der gesuchte -> rückantwort
+        createIAmFoundMsg();
+
+        //Fall 2 Ich bin nicht der gesucht & ich habe noch nie die Msg empfangen -> weiterleten
+        createNodeSearchMsg();
+    }
+
+    private byte[] createIAmFoundMsg() {
+        //TODO
+        return null;
+    }
+
+
+    private void processIAmFoundMsg(byte[] msg) {
+
+        //TODO verarbeitetn
+        //Ip-Port entnehmen und in Liste speicher
+    }
+
+
+    private byte[] createMsgMsg() {
+        //TODO
+        return null;
+    }
+
+    private void processMsgMsg(byte[] msg) {
+        //TODO Verarbeitet die Msg
+        //Gibt ergebnis in die Gui aus
+    }
+
+
     private boolean isServer() {
         return Utilities.getServerIp().equals("localhost") && myPeer.getPortAsInt() == Utilities.getStandardPort();
     }
 
+    /**
+     * Wenn die Methode benutzt wird, müssen danach die Streams manuell geschlossen werden.
+     *
+     * @param po
+     * @param msg
+     * @return
+     */
     private boolean sendMsg(PeerObject po, byte[] msg) {
         try {
             po.getOutToPeerStream().write(msg);
@@ -409,6 +470,17 @@ public class Peer {
         }
         modifyPeerList(INSERT, peerObject);
     }
+
+    public void startSearch() {
+        //TODO Wir von Gui aufgerufen um Suche zu starten
+        createNodeSearchMsg();
+    }
+
+    public void sendMsg() {
+        //TODO Wird von Gui aufgerufen
+        createMsgMsg();
+    }
+
 
     public static void main(String[] args) {
         Peer p = new Peer(3342);

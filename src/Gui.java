@@ -8,6 +8,7 @@ public class Gui extends JFrame {
 
     private JLabel lblHeadline;
     private JTextArea peerList;
+    private PeerObject peerObject; //TODO implementieren
 
     public Gui(String headline, Point location, Peer application) {
 
@@ -56,5 +57,4 @@ public class Gui extends JFrame {
         repaint();
         revalidate();
     }
-
 }
