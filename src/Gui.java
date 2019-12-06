@@ -11,7 +11,7 @@ public class Gui extends JFrame {
     private PeerObject peerObject; //TODO implementieren
 
     public Gui(String headline, Point location, Peer application) {
-
+    	//TestPush
         setTitle(headline);
         setSize(Utilities.getGuiSize());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
