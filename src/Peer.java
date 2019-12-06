@@ -177,7 +177,7 @@ public class Peer {
                                 processIAmFoundMsg(msg);
                                 break;
                             case 8:
-                                //TODO MsgMsg Hallo
+                                //TODO MsgMsg
                                 msg = new byte[0];
                                 processMsgMsg(msg);
                                 break;
