@@ -12,6 +12,8 @@ public class PeerObject {
     private Socket socket;
     private Date timestamp;
 
+    public PeerObject(){}
+
     public PeerObject(byte[] msg) {
         ip = Arrays.copyOfRange(msg, 0, 4);
         port = Arrays.copyOfRange(msg, 4, 6);

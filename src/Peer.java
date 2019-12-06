@@ -12,6 +12,7 @@ public class Peer {
     //Geteilte Attribute
     private PeerObject entryServer;
     private ArrayList<PeerObject> peerList;
+    private ArrayList<SearchObject> searchList; //TODO implementieren
     private Gui gui;
     private Thread keepAlive;
     private boolean exit = false;
