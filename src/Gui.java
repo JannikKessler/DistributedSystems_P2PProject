@@ -85,6 +85,7 @@ public class Gui extends JFrame {
 		scrollPane = new JScrollPane(peerList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		listPanel.add(scrollPane, BorderLayout.CENTER);
+		listPanel.setBorder(new EmptyBorder(0, 0, 0, 10));
 
 		// Search
 		searchOuterPanel = new JPanel();
@@ -122,7 +123,7 @@ public class Gui extends JFrame {
 		topPanel.setDividerLocation(315);
 		listPanel.setMinimumSize(new Dimension(120, 0));
 		searchOuterPanel.setMinimumSize(new Dimension(145, 0));
-		topPanel.setBorder(null);
+		topPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
 		
 		// BottomPanel
 		bottomPanel = new JPanel();
