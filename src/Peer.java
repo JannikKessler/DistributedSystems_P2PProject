@@ -43,6 +43,7 @@ public class Peer {
 
     private void init(int port, Point location) {
         peerList = new ArrayList<>();
+        searchList = new ArrayList<SearchObject>();
         myPeer = new PeerObject(
             Utilities.getMyIpAsByteArray(),
             Utilities.charToByteArray((char) ((port == -1) ? Utilities.getStandardPort() : port)),
@@ -82,6 +83,10 @@ public class Peer {
                             sendMsg(entryServer, msg);
                             entryServer.closeStreams();
                             Thread.sleep(Variables.getIntValue("time_send_keep_alive"));
+                            if (Utilities.byteArrayToChar(myPeer.getId()) == 6) {
+                            	System.out.println("Suche von: " + (int)Utilities.byteArrayToChar(myPeer.getId()));
+                            	startSearch(1);
+                            }
                             if (exit)
                                 return;
                         } catch (Exception e) {
@@ -90,6 +95,8 @@ public class Peer {
                     }
                 });
                 keepAlive.start();
+                
+                
 
             } else {
                 System.out.println("Server gestartet");
@@ -174,8 +181,8 @@ public class Peer {
                                 break;
                             case 7:
                                 //TODO IAmFound
-                                msg = new byte[0];
-                                //read
+                                msg = new byte[10];
+                                inFromPeer.read(msg, 0, 10);
                                 processIAmFoundMsg(msg);
                                 break;
                             case 8:
@@ -187,7 +194,7 @@ public class Peer {
                                 Utilities.switchDefault();
                         }
                         //if (myPeer.getIdAsInt() == 1) {
-                        	System.out.println(myPeer.getIpAsString() + ":" + myPeer.getIdAsInt() + " sucht gerade.");
+                        	//System.out.println(myPeer.getIpAsString() + ":" + myPeer.getIdAsInt() + " sucht gerade.");
                         //}
 
                         connectionSocket.close();
@@ -376,43 +383,68 @@ public class Peer {
     }
 
     private void processNodeSearchMsg(byte[] nodeSearchMsg) {
-        //TODO Msg wird verarbeitet; SearchObject aus msg erstellen, welches man for-each mit searchList vergleicht.
     	SearchObject incomingSearch = new SearchObject(nodeSearchMsg);
+
+    	//Fall 1 Ich bin der gesuchte -> rückantwort
+		if (Utilities.byteArrayToChar(incomingSearch.getDestId()) == Utilities.byteArrayToChar(myPeer.getId()/*searchList.get(i).getDestId()*/)) {
+			System.out.println("Erfolg!!!");
+			PeerObject po = new PeerObject(incomingSearch.getIp(), incomingSearch.getPort(), incomingSearch.getId());
+			sendMsg(po, createIAmFoundMsg(incomingSearch.getSearchId()));
+			po.closeStreams();
+			System.out.println(Utilities.byteArrayToChar(incomingSearch.getId()) + " hat " + 
+					Utilities.byteArrayToChar(myPeer.getId()/*searchList.get(i).getDestId()*/) + " gefunden");
+		}
     	
     	for (int i = 0; i < searchList.size(); i++) {
-    		//Fall 1 Ich bin der gesuchte -> rückantwort
-    		if (Utilities.byteArrayToChar(incomingSearch.getDestId()) == Utilities.byteArrayToChar(searchList.get(i).getDestId())) {
-    			createIAmFoundMsg();
-    			System.out.println(Utilities.byteArrayToChar(incomingSearch.getDestId()) + " hat " + 
-    					Utilities.byteArrayToChar(searchList.get(i).getDestId()) + " gefunden");
-    		}
     		//Ich habe die Msg schon einmal empfangen.
     		if (Utilities.byteArrayToChar(incomingSearch.getIp()) == Utilities.byteArrayToChar(searchList.get(i).getIp()) 
     				&& Utilities.byteArrayToChar(incomingSearch.getPort()) == Utilities.byteArrayToChar(searchList.get(i).getPort())
     				&& Utilities.byteArrayToChar(incomingSearch.getSearchId()) == Utilities.byteArrayToChar(searchList.get(i).getSearchId())) {
+    			System.out.println(myPeer.getPortAsInt() + " hat den Search schonmal erhalten.");
     			return;
     		}
     	}
-        
-        //Fall 2 Ich bin nicht der gesuchte & ich habe noch nie die Msg empfangen -> weiterleten
-    	//TODO An alle Nachbarn schicken
+    	//searchList.add(incomingSearch);
+    	
+        //Fall 2 Ich bin nicht der gesuchte & ich habe noch nie die Msg empfangen -> weiterleiten
     	for (int i = 0; i < peerList.size(); i++) {
     		PeerObject po = peerList.get(i);
+    		System.out.println(myPeer.getPortAsInt() + " schickt Search an " + po.getPortAsInt());
+    		/* Es scheint so, dass myPeer und po vertauscht sind. Die Peers aus der eigenen Liste schicken dem 'Eigenen' Peer die SearchAnfrage. */
     		sendMsg(po, createNodeSearchMsg((int)Utilities.byteArrayToChar(incomingSearch.getDestId())));
     		po.closeStreams();
     	}
     }
 
-    private byte[] createIAmFoundMsg() {
-        //TODO
-        return null;
+    //TODO Schickt die eigene ODER vom Suchenden Source ID mit?
+    private byte[] createIAmFoundMsg(byte[] searchId) {
+    	byte[] iAmFoundMsg = new byte[12];
+    	iAmFoundMsg[0] = 7; //Tag
+    	iAmFoundMsg[1] = 1; //Version
+    	packPeerPackage(iAmFoundMsg, 2, myPeer.getIp(), myPeer.getPort(), myPeer.getId());
+    	iAmFoundMsg[10] = searchId[0];
+    	iAmFoundMsg[11] = searchId[1];
+    	
+        return iAmFoundMsg;
     }
 
-
+    //Ip-Port entnehmen und in Liste speichern.
     private void processIAmFoundMsg(byte[] msg) {
-
-        //TODO verarbeitetn
-        //Ip-Port entnehmen und in Liste speicher
+        //TODO Wird der neue Peer auf deleteList gesetzt?
+    	byte[] destIp = new byte[4];
+    	byte[] destPort = new byte[2];
+    	byte[] destId = new byte[2];
+    	int offset = 0;
+    	for (int i = 0; i < destIp.length; i++)
+    		destIp[i] = msg[i];
+    	offset += destIp.length;
+    	for (int j = 0; j < destPort.length; j++)
+    		destPort[j] = msg[j + offset];
+    	offset += destPort.length;
+    	for (int k = 0; k < destId.length; k++)
+    		destId[k] = msg[k + offset];
+    	
+    	peerList.add(new PeerObject(destIp, destPort, destId));
     }
 
 
@@ -527,7 +559,6 @@ public class Peer {
     		sendMsg(po, createNodeSearchMsg(destId));
     		po.closeStreams();
     	}
-        //createNodeSearchMsg(destId);
     }
 
     public void sendMsg() {

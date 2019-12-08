@@ -28,23 +28,22 @@ public class SearchObject extends PeerObject {
     	int offset = 0;
     	for (int i = 0; i < ip.length; i++) {
     		this.ip[i] = nodeSearchMsg[i];
-    		offset++;
     	}
+    	offset += ip.length;
     	for (int j = 0; j < port.length; j++) {
     		this.port[j] = nodeSearchMsg[j + offset];
-    		offset++;
     	}
+    	offset += port.length;
     	for (int k = 0; k < id.length; k++) {
     		this.id[k] = nodeSearchMsg[k + offset];
-    		offset++;
     	}
+    	offset += id.length;
     	for (int l = 0; l < searchId.length; l++) {
     		this.searchId[l] = nodeSearchMsg[l + offset];
-    		offset++;
     	}
+    	offset += searchId.length;
     	for (int m = 0; m < destId.length; m++) {
     		this.destId[m] = nodeSearchMsg[m + offset];
-    		offset++;
     	}
     }
     
