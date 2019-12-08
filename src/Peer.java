@@ -13,6 +13,7 @@ public class Peer {
     private PeerObject entryServer;
     private ArrayList<PeerObject> peerList;
     private ArrayList<SearchObject> searchList; //TODO implementieren
+    private int searchIDCounter = 0;
     private Gui gui;
     private Thread keepAlive;
     private boolean exit = false;
@@ -140,7 +141,7 @@ public class Peer {
                         inFromPeer.read(msg, 0, 1);
                         int version = msg[0];
 
-                        System.out.println(">> " + tag + " <<");
+                        System.out.println(myPeer.getPortAsInt() + ">> " + tag + " <<");
 
                         switch (tag) {
                             case 1:
@@ -185,6 +186,9 @@ public class Peer {
                             default:
                                 Utilities.switchDefault();
                         }
+                        //if (myPeer.getIdAsInt() == 1) {
+                        	System.out.println(myPeer.getIpAsString() + ":" + myPeer.getIdAsInt() + " sucht gerade.");
+                        //}
 
                         connectionSocket.close();
 
@@ -353,19 +357,50 @@ public class Peer {
         addPeer(new PeerObject(msg));
     }
 
-    private byte[] createNodeSearchMsg() {
+    //TODO Wo aufgerufen, muss es an alle Nachbarn geschickt werden.
+    private byte[] createNodeSearchMsg(int destId) {
         //TODO
-        return null;
+    	byte[] nodeSearchMsg = new byte[14];
+    	nodeSearchMsg[0] = (byte) 6; //Tag
+    	nodeSearchMsg[1] = (byte) 1; //Version
+    	packPeerPackage(nodeSearchMsg, 2, myPeer.getIp(), myPeer.getPort(), myPeer.getId());
+    	byte[] searchID = Utilities.charToByteArray((char) searchIDCounter++);
+    	byte[] destID = Utilities.charToByteArray((char) destId);						//TODO Testsuche anpassen
+    	nodeSearchMsg[10] = searchID[0];
+    	nodeSearchMsg[11] = searchID[1];
+    	nodeSearchMsg[12] = destID[0];
+    	nodeSearchMsg[13] = destID[1];
+    	
+    	searchList.add(new SearchObject(myPeer.getIp(), myPeer.getPort(), myPeer.getId(), searchID, destID));
+        return nodeSearchMsg;
     }
 
-    private void processNodeSearchMsg(byte[] msg) {
-        //TODO Msg wird verarbeitet
-
-        //Fall 1 Ich bin der gesuchte -> rückantwort
-        createIAmFoundMsg();
-
-        //Fall 2 Ich bin nicht der gesucht & ich habe noch nie die Msg empfangen -> weiterleten
-        createNodeSearchMsg();
+    private void processNodeSearchMsg(byte[] nodeSearchMsg) {
+        //TODO Msg wird verarbeitet; SearchObject aus msg erstellen, welches man for-each mit searchList vergleicht.
+    	SearchObject incomingSearch = new SearchObject(nodeSearchMsg);
+    	
+    	for (int i = 0; i < searchList.size(); i++) {
+    		//Fall 1 Ich bin der gesuchte -> rückantwort
+    		if (Utilities.byteArrayToChar(incomingSearch.getDestId()) == Utilities.byteArrayToChar(searchList.get(i).getDestId())) {
+    			createIAmFoundMsg();
+    			System.out.println(Utilities.byteArrayToChar(incomingSearch.getDestId()) + " hat " + 
+    					Utilities.byteArrayToChar(searchList.get(i).getDestId()) + " gefunden");
+    		}
+    		//Ich habe die Msg schon einmal empfangen.
+    		if (Utilities.byteArrayToChar(incomingSearch.getIp()) == Utilities.byteArrayToChar(searchList.get(i).getIp()) 
+    				&& Utilities.byteArrayToChar(incomingSearch.getPort()) == Utilities.byteArrayToChar(searchList.get(i).getPort())
+    				&& Utilities.byteArrayToChar(incomingSearch.getSearchId()) == Utilities.byteArrayToChar(searchList.get(i).getSearchId())) {
+    			return;
+    		}
+    	}
+        
+        //Fall 2 Ich bin nicht der gesuchte & ich habe noch nie die Msg empfangen -> weiterleten
+    	//TODO An alle Nachbarn schicken
+    	for (int i = 0; i < peerList.size(); i++) {
+    		PeerObject po = peerList.get(i);
+    		sendMsg(po, createNodeSearchMsg((int)Utilities.byteArrayToChar(incomingSearch.getDestId())));
+    		po.closeStreams();
+    	}
     }
 
     private byte[] createIAmFoundMsg() {
@@ -485,9 +520,14 @@ public class Peer {
         deletePeersFromPeerList(deleteList);
     }
 
-    public void startSearch() {
+    public void startSearch(int destId) {
         //TODO Wir von Gui aufgerufen um Suche zu starten
-        createNodeSearchMsg();
+    	for (int i = 0; i < peerList.size(); i++) {
+    		PeerObject po = peerList.get(i);
+    		sendMsg(po, createNodeSearchMsg(destId));
+    		po.closeStreams();
+    	}
+        //createNodeSearchMsg(destId);
     }
 
     public void sendMsg() {
