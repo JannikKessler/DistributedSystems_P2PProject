@@ -168,8 +168,8 @@ public class Peer {
                                 break;
                             case 6:
                                 //TODO NodeSearchMsg
-                                msg = new byte[0];
-                                //read
+                                msg = new byte[14];
+                                inFromPeer.read(msg, 0, 14);
                                 processNodeSearchMsg(msg);
                                 break;
                             case 7:
