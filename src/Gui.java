@@ -167,8 +167,12 @@ public class Gui extends JFrame {
 
 	public void setPeerList(ArrayList<PeerObject> peerListe) {
 
-		DefaultTableModel tableModel = (DefaultTableModel) peerTable.getModel();
-
+		DefaultTableModel tableModel = (DefaultTableModel) peerTable.getModel();		
+		if (tableModel.getRowCount() > 0) {
+		    for (int i = tableModel.getRowCount() - 1; i > -1; i--) {
+		    	tableModel.removeRow(i);
+		    }
+		}
 		tableModel.setRowCount(0);
 
 		for (int i = 0; i < peerListe.size(); i++) {
