@@ -45,7 +45,9 @@ public class Gui extends JFrame {
 	private final String[] COLUMN_NAMES = { "ID", "IP", "Port" };
 
 	public Gui(String headline, Point location, Peer application) {
-
+		
+		// Kommentar für Test-Push
+		
 		setTitle(headline);
 		setSize(Utilities.getGuiSize());
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
