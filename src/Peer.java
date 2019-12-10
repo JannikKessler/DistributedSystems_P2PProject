@@ -12,7 +12,7 @@ public class Peer {
     //Geteilte Attribute
     private PeerObject entryServer;
     private ArrayList<PeerObject> peerList;
-    private ArrayList<SearchObject> searchList; //TODO implementieren
+    private ArrayList<SearchObject> searchList;
     private int searchIDCounter = 0;
     private Gui gui;
     private Thread keepAlive;
@@ -173,13 +173,11 @@ public class Peer {
                                 processIAmAliveMsg(msg);
                                 break;
                             case 6:
-                                //TODO NodeSearchMsg
                                 msg = new byte[12];
                                 inFromPeer.read(msg, 0, 12);
                                 processNodeSearchMsg(msg);
                                 break;
                             case 7:
-                                //TODO IAmFound
                                 msg = new byte[10];
                                 inFromPeer.read(msg, 0, 10);
                                 processIAmFoundMsg(msg);
@@ -361,15 +359,13 @@ public class Peer {
         addPeer(new PeerObject(msg));
     }
 
-    //TODO Wo aufgerufen, muss es an alle Nachbarn geschickt werden.
     private byte[] createNodeSearchMsg(int destId) {
-        //TODO
         byte[] nodeSearchMsg = new byte[14];
         nodeSearchMsg[0] = (byte) 6; //Tag
         nodeSearchMsg[1] = (byte) 1; //Version
         packPeerPackage(nodeSearchMsg, 2, myPeer.getIp(), myPeer.getPort(), myPeer.getId());
         byte[] searchID = Utilities.charToByteArray((char) ++searchIDCounter);
-        byte[] destID = Utilities.charToByteArray((char) destId);                        //TODO Testsuche anpassen
+        byte[] destID = Utilities.charToByteArray((char) destId);
         nodeSearchMsg[10] = searchID[0];
         nodeSearchMsg[11] = searchID[1];
         nodeSearchMsg[12] = destID[0];
@@ -414,7 +410,6 @@ public class Peer {
         }
     }
 
-    //TODO Schickt die eigene ODER vom Suchenden Source ID mit?
     private byte[] createIAmFoundMsg(byte[] searchId) {
         byte[] iAmFoundMsg = new byte[12];
         iAmFoundMsg[0] = 7; //Tag
