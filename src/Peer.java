@@ -12,6 +12,7 @@ public class Peer {
     //Geteilte Attribute
     private PeerObject entryServer;
     private ArrayList<PeerObject> peerList;
+    private ArrayList<SearchObject> searchList; //TODO implementieren
     private Gui gui;
     private Thread keepAlive;
     private boolean exit = false;
@@ -462,13 +463,26 @@ public class Peer {
     }
 
     public void addPeer(PeerObject peerObject) {
+
         for (PeerObject p : peerList) {
             if (Arrays.equals(p.getId(), peerObject.getId())) {
                 p.updateTimestamp();
+                reducePeerList();
                 return;
             }
         }
         modifyPeerList(INSERT, peerObject);
+        reducePeerList();
+    }
+
+    private void reducePeerList() {
+        ArrayList<PeerObject> deleteList = new ArrayList<>();
+
+        for (PeerObject p : peerList) {
+            if (peerList.indexOf(p) >= 4)
+                deleteList.add(p);
+        }
+        deletePeersFromPeerList(deleteList);
     }
 
     public void startSearch() {
