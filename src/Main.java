@@ -55,8 +55,8 @@ public class Main {
 
         AtomicInteger port = new AtomicInteger(3334);
 
-        for (int i = 0; i < 2/*maxNebeneinander*/; i++) {
-            for (int j = 0; j < 3/*maxUntereinander*/; j++) {
+        for (int i = 0; i < maxNebeneinander; i++) {
+            for (int j = 0; j < maxUntereinander; j++) {
 
                 AtomicInteger stelleX = new AtomicInteger(i);
                 AtomicInteger stelleY = new AtomicInteger(j);
@@ -73,7 +73,7 @@ public class Main {
                     p.startPeer();
                 });
                 t.start();
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             }
         }
 

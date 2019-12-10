@@ -12,26 +12,24 @@ public class PeerObject {
     private Socket socket;
     private Date timestamp;
 
-    public PeerObject(){}
+    public PeerObject() {
+    }
 
     public PeerObject(byte[] msg) {
-        ip = Arrays.copyOfRange(msg, 0, 4);
-        port = Arrays.copyOfRange(msg, 4, 6);
-        id = Arrays.copyOfRange(msg, 6, 8);
-        timestamp = new Date();
+        initPeerObject(Arrays.copyOfRange(msg, 0, 4),
+            Arrays.copyOfRange(msg, 4, 6),
+            Arrays.copyOfRange(msg, 6, 8));
     }
 
     public PeerObject(byte[] ip, byte[] port, byte[] id) {
+        initPeerObject(ip, port, id);
+    }
+
+    protected void initPeerObject(byte[] ip, byte[] port, byte[] id) {
+
         this.ip = ip;
         this.port = port;
         this.id = id;
-        timestamp = new Date();
-    }
-
-    public PeerObject(byte[] msg, int i) {
-        ip = Arrays.copyOfRange(msg, 0, 4);
-        port = Arrays.copyOfRange(msg, 4, 6);
-        id = Utilities.charToByteArray((char) i);
         timestamp = new Date();
     }
 
@@ -107,5 +105,9 @@ public class PeerObject {
 
     public int getIdAsInt() {
         return Utilities.byteArrayToChar(id);
+    }
+
+    public String toString() {
+        return getIpAsString() + ":" + getPortAsInt() + "; " + getIdAsInt();
     }
 }

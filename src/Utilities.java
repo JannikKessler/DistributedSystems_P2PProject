@@ -159,4 +159,9 @@ public class Utilities {
     public static byte[] getStandardPortAsByteArray() {
         return charToByteArray((char) getStandardPort());
     }
+
+    public static void modificationException(Exception e) {
+        System.err.println("Modification-Exception");
+        //e.printStackTrace();
+    }
 }
