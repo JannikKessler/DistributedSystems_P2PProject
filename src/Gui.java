@@ -1,6 +1,5 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.Point;
@@ -8,17 +7,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
-import javax.swing.JTextArea;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
@@ -26,7 +24,7 @@ import javax.swing.border.EmptyBorder;
 public class Gui extends JFrame {
 
 	private JLabel lblHeadline;
-	private JList peerList;
+	private JTable peerTable;
 	private PeerObject peerObject; // TODO implementieren
 
 	private JPanel contentPane;
@@ -42,6 +40,8 @@ public class Gui extends JFrame {
 	private JTextField searchField;
 	private JButton searchButton;
 	private JLabel searchText;
+	
+	private final String[] COLUMN_NAMES = { "ID", "IP", "Port"};
 
 	public Gui(String headline, Point location, Peer application) {
 
@@ -76,15 +76,25 @@ public class Gui extends JFrame {
 		// PeerList
 		listPanel = new JPanel();
 		listPanel.setLayout(new BorderLayout());
-		String interessen[] = { "ID: 0\tIP: 192.168.0.2\tPort: 3333", "ID: 4\tIP: 192.168.0.7\tPort: 3333",
-				"ID: 18\tIP: 192.168.0.9\tPort: 3333", "ID: 27\tIP: 192.168.0.13\tPort: 3333" }; // TODO
-		peerList = new JList(interessen);
-		peerList.setCellRenderer(new TabRenderer());
-		peerList.setFont(Utilities.getNormalFont());
-		peerList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		scrollPane = new JScrollPane(peerList, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+		
+		String[][] data = { { "0", "192.168.0.2", "3333" },
+				{ "0", "192.168.0.2", "3333" },
+				{ "4", "192.168.0.5", "3336" },
+				{ "7", "192.168.0.12", "3349" },
+				{ "18", "192.168.0.25", "65501" } };
+
+		peerTable = new JTable(data, COLUMN_NAMES);
+		peerTable.setFont(Utilities.getNormalFont());
+		peerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
+		peerTable.getColumnModel().getColumn(0).setPreferredWidth(0);
+		peerTable.getColumnModel().getColumn(2).setPreferredWidth(0);
+		peerTable.setShowGrid(false);
+		
+		scrollPane = new JScrollPane(peerTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		listPanel.add(scrollPane, BorderLayout.CENTER);
+		listPanel.setBorder(new EmptyBorder(0, 0, 0, 10));
 
 		// Search
 		searchOuterPanel = new JPanel();
@@ -96,7 +106,7 @@ public class Gui extends JFrame {
 		searchField.setToolTipText("Geben Sie eine Peer-ID ein.");
 		searchField.setFont(Utilities.getNormalFont());
 		searchButton = new JButton("Nach ID suchen");
-		searchButton.setToolTipText("Suchen Sie nach der eingegebenen Peer-ID.");
+		searchButton.setToolTipText("Suchen Sie im P2P-Netzwerk nach der eingegebenen ID.");
 		searchButton.setFont(Utilities.getNormalFont());
 		searchText = new JLabel("Ungültige ID");
 		searchText.setFont(Utilities.getNormalFont());
@@ -112,7 +122,7 @@ public class Gui extends JFrame {
 		searchPanel.add(searchField);
 		searchPanel.add(searchButton);
 		searchPanel.add(searchText);
-		searchPanel.setBorder(new EmptyBorder(0, 10, 20, 0));
+		searchPanel.setBorder(new EmptyBorder(0, 10, 0, 0));
 		searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
 		searchOuterPanel.add(searchPanel);
 
@@ -123,16 +133,16 @@ public class Gui extends JFrame {
 		listPanel.setMinimumSize(new Dimension(120, 0));
 		searchOuterPanel.setMinimumSize(new Dimension(145, 0));
 		topPanel.setBorder(null);
-		
+		topPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
+
 		// BottomPanel
 		bottomPanel = new JPanel();
 		bottomPanel.setLayout(new BorderLayout());
-		
-		
+
 		// SplitLayout
 		splitPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topPanel, bottomPanel);
 		splitPanel.setOneTouchExpandable(true);
-		splitPanel.setDividerLocation(110);
+		splitPanel.setDividerLocation(130);
 		topPanel.setMinimumSize(new Dimension(0, 85));
 		bottomPanel.setMinimumSize(new Dimension(0, 150));
 		splitPanel.setBorder(null);
@@ -145,9 +155,15 @@ public class Gui extends JFrame {
 		setVisible(true);
 	}
 
-	public void setPeerList(String ausgabe) {
+	public void setPeerList(ArrayList<PeerObject> peerListe) {
 
-		// TODO
+		String[][] data = new String [peerListe.size()][3];
+		for (int i = 0; i < peerListe.size(); i++) {
+			data[i][0] = "" + peerListe.get(i).getIdAsInt();
+			data[i][1] = "" + peerListe.get(i).getIpAsString();
+			data[i][2] = "" + peerListe.get(i).getPortAsInt();
+		}
+		peerTable = new JTable(data, COLUMN_NAMES);
 
 		repaint();
 		revalidate();
@@ -181,19 +197,4 @@ public class Gui extends JFrame {
 		}
 	}
 
-	class TabRenderer extends DefaultListCellRenderer {
-		JTextArea field = new JTextArea();
-
-		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
-				boolean cellHasFocus) {
-			super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-			field.setText(super.getText());
-			field.setFont(super.getFont());
-			field.setBackground(super.getBackground());
-			field.setForeground(super.getForeground());
-			field.setBorder(super.getBorder());
-			field.setTabSize(5);
-			return field;
-		}
-	}
 }
