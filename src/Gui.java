@@ -116,7 +116,7 @@ public class Gui extends JFrame {
 		searchButton = new JButton("Nach ID suchen");
 		searchButton.setToolTipText("Suchen Sie im P2P-Netzwerk nach der eingegebenen ID.");
 		searchButton.setFont(Utilities.getNormalFont());
-		searchText = new JLabel("Ungültige ID");
+		searchText = new JLabel("UngÃ¼ltige ID");
 		searchText.setFont(Utilities.getNormalFont());
 		searchText.setForeground(Color.red);
 		searchText.setVisible(false);
@@ -190,7 +190,7 @@ public class Gui extends JFrame {
 			searchText.setVisible(false);
 			searchField.setText("");
 			System.out.println("Suche nach " + id);
-			// TODO SUche ausführen
+			// TODO SUche ausfÃ¼hren
 		} else {
 			searchText.setVisible(true);
 		}
