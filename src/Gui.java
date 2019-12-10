@@ -20,6 +20,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
 
 public class Gui extends JFrame {
 
@@ -40,8 +41,8 @@ public class Gui extends JFrame {
 	private JTextField searchField;
 	private JButton searchButton;
 	private JLabel searchText;
-	
-	private final String[] COLUMN_NAMES = { "ID", "IP", "Port"};
+
+	private final String[] COLUMN_NAMES = { "ID", "IP", "Port" };
 
 	public Gui(String headline, Point location, Peer application) {
 
@@ -76,21 +77,28 @@ public class Gui extends JFrame {
 		// PeerList
 		listPanel = new JPanel();
 		listPanel.setLayout(new BorderLayout());
-		
-		String[][] data = { { "0", "192.168.0.2", "3333" },
-				{ "0", "192.168.0.2", "3333" },
-				{ "4", "192.168.0.5", "3336" },
-				{ "7", "192.168.0.12", "3349" },
-				{ "18", "192.168.0.25", "65501" } };
 
-		peerTable = new JTable(data, COLUMN_NAMES);
+		DefaultTableModel tableModel = new DefaultTableModel(){
+		    @Override
+		    public boolean isCellEditable(int row, int column) {
+		       //all cells false
+		       return false;
+		    }
+		};
+		String[][] data = { { "Test", "Test", "Test" }, { "Test", "Test", "Test" } };
+		
+		tableModel.addColumn("ID");
+		tableModel.addColumn("IP");
+		tableModel.addColumn("Port");
+			
+		peerTable = new JTable(tableModel);
 		peerTable.setFont(Utilities.getNormalFont());
 		peerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		
+
 		peerTable.getColumnModel().getColumn(0).setPreferredWidth(0);
 		peerTable.getColumnModel().getColumn(2).setPreferredWidth(0);
 		peerTable.setShowGrid(false);
-		
+
 		scrollPane = new JScrollPane(peerTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
 				JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		listPanel.add(scrollPane, BorderLayout.CENTER);
@@ -157,13 +165,20 @@ public class Gui extends JFrame {
 
 	public void setPeerList(ArrayList<PeerObject> peerListe) {
 
-		String[][] data = new String [peerListe.size()][3];
+		DefaultTableModel tableModel = (DefaultTableModel) peerTable.getModel();
+
+		tableModel.setRowCount(0);
+
 		for (int i = 0; i < peerListe.size(); i++) {
-			data[i][0] = "" + peerListe.get(i).getIdAsInt();
-			data[i][1] = "" + peerListe.get(i).getIpAsString();
-			data[i][2] = "" + peerListe.get(i).getPortAsInt();
+			String[] data = new String[3];
+
+			data[0] = "" + peerListe.get(i).getIdAsInt();
+			data[1] = peerListe.get(i).getIpAsString();
+			data[2] = "" + peerListe.get(i).getPortAsInt();
+
+			tableModel.addRow(data);
 		}
-		peerTable = new JTable(data, COLUMN_NAMES);
+		tableModel.fireTableDataChanged();
 
 		repaint();
 		revalidate();
