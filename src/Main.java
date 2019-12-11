@@ -11,12 +11,20 @@ public class Main {
 
 
             //startFew();
-            startMany();
+            //startMany();
+
+            startOnConsole(args);
 
 
         } catch (Exception e) {
             Utilities.errorMessage(e);
         }
+    }
+
+    private static void startOnConsole(String[] args) {
+
+        Variables.putObject("server_ip", args[0]);
+        startPeer(Integer.parseInt(args[1]));
     }
 
     private static void startFew() throws Exception {
