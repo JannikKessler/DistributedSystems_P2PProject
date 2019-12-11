@@ -52,7 +52,7 @@ public class Peer {
         this.location = location;
     }
 
-    public void startPeer() {
+    public void startPeer(boolean showGui) {
 
         try {
 
@@ -122,9 +122,11 @@ public class Peer {
                 cleanPeerList.start();
             }
 
-            gui = new Gui((isServer ? "Server" : "Peer") + " " + myPeer.getIpAsString() + ":" + myPeer.getPortAsInt() + "; " + myPeer.getIdAsInt(), location, this);
-            AnzeigeThread at = new AnzeigeThread(gui, peerList);
-            at.start();
+            if (showGui) {
+                gui = new Gui((isServer ? "Server" : "Peer") + " " + myPeer.getIpAsString() + ":" + myPeer.getPortAsInt() + "; " + myPeer.getIdAsInt(), location, this);
+                AnzeigeThread at = new AnzeigeThread(gui, peerList);
+                at.start();
+            }
 
             ServerSocket myServer = new ServerSocket(myPeer.getPortAsInt());
 
@@ -572,7 +574,7 @@ public class Peer {
 
 
     public static void main(String[] args) {
-        Peer p = new Peer(3342);
-        p.startPeer();
+        Peer p = new Peer(3339);
+        p.startPeer(true);
     }
 }

@@ -12,8 +12,8 @@ public class Main {
 
             //startFew();
             //startMany();
-
-            startOnConsole(args);
+            startPeer(3333, true);
+            //startOnConsole(args);
 
 
         } catch (Exception e) {
@@ -24,7 +24,7 @@ public class Main {
     private static void startOnConsole(String[] args) {
 
         Variables.putObject("server_ip", args[0]);
-        startPeer(Integer.parseInt(args[1]));
+        startPeer(Integer.parseInt(args[1]), false);
     }
 
     private static void startFew() throws Exception {
@@ -33,24 +33,24 @@ public class Main {
 
         Thread.sleep(1000);
 
-        startPeer(3334);
+        startPeer(3334, true);
     }
 
-    private static void startPeer(int port) {
+    private static void startPeer(int port, boolean showGui) {
         Peer p = new Peer(port);
-        p.startPeer();
+        p.startPeer(showGui);
     }
 
     private static void startServer() {
         Peer s = new Peer();
-        s.startPeer();
+        s.startPeer(true);
     }
 
     private static void startMany() throws Exception {
 
         Thread st = new Thread(() -> {
             Peer server = new Peer();
-            server.startPeer();
+            server.startPeer(true);
         });
         st.start();
 
@@ -78,7 +78,7 @@ public class Main {
 
                     Point location = new Point(x, y);
                     Peer p = new Peer(port.getAndIncrement(), location);
-                    p.startPeer();
+                    p.startPeer(true);
                 });
                 t.start();
                 Thread.sleep(1000);

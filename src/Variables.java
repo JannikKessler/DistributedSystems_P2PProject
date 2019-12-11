@@ -7,7 +7,7 @@ public class Variables {
 
     static {
         variables = new HashMap<>();
-        variables.put("server_ip", "localhost");
+        variables.put("server_ip", "5.230.22.146"); //5.230.22.146 Dieser Server ist immer erreichbar und auf dem Stand vom 11.12.19 12:20 Uhr
         variables.put("standard_port", 3333);
         variables.put("peer_pack_length", 8);
         variables.put("time_serverlist_clean", 60000);
