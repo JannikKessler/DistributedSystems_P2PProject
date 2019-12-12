@@ -12,8 +12,8 @@ public class Main {
 
             //startFew();
             //startMany();
-            startPeer(3333, true);
-            //startOnConsole(args);
+            //startPeer(3333, true);
+            startOnConsole(args);
 
 
         } catch (Exception e) {
@@ -24,7 +24,7 @@ public class Main {
     private static void startOnConsole(String[] args) {
 
         Variables.putObject("server_ip", args[0]);
-        startPeer(Integer.parseInt(args[1]), false);
+        startPeer(Integer.parseInt(args[1]), Boolean.parseBoolean(args[2]));
     }
 
     private static void startFew() throws Exception {
