@@ -4,6 +4,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
 
+    private static boolean startFromConsole = false;
+
     public static void main(String[] args) {
 
         try {
@@ -21,10 +23,15 @@ public class Main {
         }
     }
 
+    public static boolean isStartFromConsole() {
+        return startFromConsole;
+    }
+
     private static void startOnConsole(String[] args) {
 
         Variables.putObject("server_ip", args[0]);
         startPeer(Integer.parseInt(args[1]), Boolean.parseBoolean(args[2]));
+        startFromConsole = true;
     }
 
     private static void startFew() throws Exception {

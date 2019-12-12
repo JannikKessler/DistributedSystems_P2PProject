@@ -43,8 +43,6 @@ public class Gui extends JFrame {
 
     public Gui(String headline, Point location, Peer peer) {
 
-        // Kommentar f�r Test-Push
-
         setTitle(headline);
         setSize(Utilities.getGuiSize());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -56,6 +54,9 @@ public class Gui extends JFrame {
             public void windowClosing(WindowEvent e) {
                 dispose();
                 peer.exit();
+
+                if (Main.isStartFromConsole())
+                    System.exit(0);
             }
         });
 
