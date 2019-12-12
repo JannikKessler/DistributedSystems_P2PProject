@@ -42,6 +42,7 @@ public class Main {
     }
 
     private static void startServer() {
+        Variables.putObject("server_ip", "localhost");
         Peer s = new Peer();
         s.startPeer(true);
     }

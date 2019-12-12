@@ -103,6 +103,7 @@ public class Peer {
                 cleanPeerList = new Thread(() -> {
                     try {
                         while (true) {
+                            addPeer(myPeer);
                             long grenzwert = new Date().getTime() - Variables.getIntValue("time_server_max_without_keep_alive");
                             ArrayList<PeerObject> deleteList = new ArrayList<>();
                             for (PeerObject p : peerList) {
