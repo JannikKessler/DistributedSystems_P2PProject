@@ -28,10 +28,9 @@ public class Main {
     }
 
     private static void startOnConsole(String[] args) {
-
+        startFromConsole = true;
         Variables.putObject("server_ip", args[0]);
         startPeer(Integer.parseInt(args[1]), Boolean.parseBoolean(args[2]));
-        startFromConsole = true;
     }
 
     private static void startFew() throws Exception {

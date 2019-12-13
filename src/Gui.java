@@ -54,9 +54,9 @@ public class Gui extends JFrame {
             public void windowClosing(WindowEvent e) {
                 dispose();
                 peer.exit();
-
-                if (Main.isStartFromConsole())
+                if (Main.isStartFromConsole()) {
                     System.exit(0);
+                }
             }
         });
 
