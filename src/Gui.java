@@ -223,6 +223,7 @@ public class Gui extends JFrame {
 		msgPanel.setLayout(new BorderLayout());
 		bottomPanel.add(msgPanel, BorderLayout.SOUTH);
 		msgField = new JTextField();
+		msgField.setFont(Utilities.getNormalFont());
 		msgPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
 		msgPanel.add(msgField, BorderLayout.CENTER);
 		
@@ -253,7 +254,7 @@ public class Gui extends JFrame {
 		msgSendButton = new JButton("Senden");
 		msgSendPanel.add(msgSendButton, BorderLayout.EAST);
 		msgSendButton.setFont(Utilities.getNormalFont());
-		msgSendButton.setPreferredSize(new Dimension(100, 33));
+		msgSendButton.setPreferredSize(new Dimension(100, 30));
 		
 		msgSendButton.addActionListener(new ActionListener() {
 			
@@ -362,7 +363,7 @@ public class Gui extends JFrame {
 		int id = Integer.parseInt((String) peerTable.getValueAt(peerTable.getSelectedRow(), 0));
 		String msg = msgField.getText();
 		
-		System.out.println("Sende \"" + msg + "\" - an ID:" + id);
+		peer.sendMsg(msg, id);
 		msgField.setText("");
 	}
 	
