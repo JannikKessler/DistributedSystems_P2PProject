@@ -13,9 +13,9 @@ public class Main {
 
 
             //startFew();
-            //startMany();
+            startMany(false);
             //startPeer(3333, true);
-            startOnConsole(args);
+            //startOnConsole(args);
 
 
         } catch (Exception e) {
@@ -53,15 +53,17 @@ public class Main {
         s.startPeer(true);
     }
 
-    private static void startMany() throws Exception {
+    private static void startMany(boolean withServer) throws Exception {
 
-        Thread st = new Thread(() -> {
-            Peer server = new Peer();
-            server.startPeer(true);
-        });
-        st.start();
+        if (withServer) {
+            Thread st = new Thread(() -> {
+                Peer server = new Peer();
+                server.startPeer(true);
+            });
+            st.start();
 
-        Thread.sleep(1500);
+            Thread.sleep(1500);
+        }
 
         int maxNebeneinander, maxUntereinander;
 
