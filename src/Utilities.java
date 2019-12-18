@@ -181,7 +181,7 @@ public class Utilities {
     }
 
     public static void println(Gui g, String s) {
-        if (isShowGui())
+        if (isShowGui() && g != null)
             g.addText(s);
         System.out.println(s);
     }

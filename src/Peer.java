@@ -197,7 +197,8 @@ public class Peer {
                                 Utilities.switchDefault();
                         }
 
-                        Utilities.println(gui, "[Von ID " + id + "] Tag " + tag + " erhalten");
+                        if (tag != 8)
+                            Utilities.println(gui, "[Von ID " + id + "] Tag " + tag + " erhalten");
 
                         connectionSocket.close();
 
@@ -212,19 +213,6 @@ public class Peer {
         } catch (Exception e) {
             Utilities.errorMessage(e);
         }
-    }
-
-    private int processMsgMsg(byte[] msg, InputStream inFromPeer) throws Exception {
-        PeerObject p = new PeerObject(msg);
-        addPeer(p);
-        int length = Utilities.byteArrayToChar(Arrays.copyOfRange(msg, 8, 10));
-
-        byte[] msgMsg = new byte[length];
-        inFromPeer.read(msgMsg, 0, length);
-        String txt = new String(msg);
-        int id = p.getIdAsInt();
-        Utilities.println(gui, "[Von ID " + id + "] " + txt);
-        return id;
     }
 
     private byte[] createEntryMsg() {
@@ -463,9 +451,8 @@ public class Peer {
         byte[] msgLength = Utilities.charToByteArray((char) msgText.length);
 
         int arrLength = 12 + msgText.length;
-        byte[] msgMsg = new byte[arrLength];
 
-        msgMsg = Arrays.copyOf(msgHeader, arrLength);
+        byte[] msgMsg = Arrays.copyOf(msgHeader, arrLength);
         msgMsg[10] = msgLength[0];
         msgMsg[11] = msgLength[1];
 
@@ -474,6 +461,19 @@ public class Peer {
         }
 
         return msgMsg;
+    }
+
+    private int processMsgMsg(byte[] msg, InputStream inFromPeer) throws Exception {
+        PeerObject p = new PeerObject(msg);
+        addPeer(p);
+        int length = Utilities.byteArrayToChar(Arrays.copyOfRange(msg, 8, 10));
+
+        byte[] msgMsg = new byte[length];
+        inFromPeer.read(msgMsg, 0, length);
+        String txt = new String(msgMsg);
+        int id = p.getIdAsInt();
+        Utilities.println(gui, "[Von ID " + id + "] " + txt);
+        return id;
     }
 
     private boolean isServer() {
