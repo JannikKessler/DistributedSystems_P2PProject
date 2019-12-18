@@ -202,13 +202,14 @@ public class Gui extends JFrame {
         bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
         bottomPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
-        chatArea = new JTextArea("Ausgabe:");
+        chatArea = new JTextArea();
         chatArea.setFont(Utilities.getNormalFont());
         DefaultCaret caret = (DefaultCaret) chatArea.getCaret();
         caret.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
         chatArea.setLineWrap(true);
         chatArea.setWrapStyleWord(true);
         chatArea.setEditable(false);
+        chatArea.append("Ausgabe");
         scrollPaneChat = new JScrollPane(chatArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
             JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         bottomPanel.add(scrollPaneChat, BorderLayout.CENTER);
