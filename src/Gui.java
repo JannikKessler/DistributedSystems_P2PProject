@@ -12,7 +12,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
@@ -66,7 +65,7 @@ public class Gui extends JFrame {
             public void windowClosing(WindowEvent e) {
                 dispose();
                 peer.exit();
-                if (Main.isStartFromConsole()) {
+                if (Main.isExitOnWindowClose()) {
                     System.exit(0);
                 }
             }
@@ -334,7 +333,7 @@ public class Gui extends JFrame {
         } else {
             msgSendText.setVisible(true);
             String id = (String) peerTable.getValueAt(selectedNr, 0);
-            msgSendText.setText("An ID:" + id + " schicken");
+            msgSendText.setText("An ID " + id + " schicken");
         }
         checkSendButton();
     }

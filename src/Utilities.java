@@ -12,6 +12,10 @@ public class Utilities {
         return Variables.getStringValue("server_ip");
     }
 
+    public static void setServerIp(String serverip) {
+        Variables.putObject("server_ip", serverip);
+    }
+
     public static int getStandardPort() {
         return Variables.getIntValue("standard_port");
     }
@@ -95,7 +99,10 @@ public class Utilities {
     }
 
     public static void printPeerList(Gui gui, ArrayList<PeerObject> peerListe, boolean printOnConsole) {
-        gui.setPeerList(peerListe);
+        if (isShowGui())
+            gui.setPeerList(peerListe);
+        if (printOnConsole)
+            System.out.println("Anzahl Peers in der Liste: " + peerListe.size());
     }
 
     public static int getScreenUpdateTime() {
@@ -163,5 +170,19 @@ public class Utilities {
     public static void modificationException(Exception e) {
         System.err.println("Modification-Exception");
         //e.printStackTrace();
+    }
+
+    public static void setShowGui(boolean showGui) {
+        Variables.putObject("show_gui", showGui);
+    }
+
+    public static boolean isShowGui() {
+        return (Boolean) Variables.getObject("show_gui");
+    }
+
+    public static void println(Gui g, String s) {
+        if (isShowGui())
+            g.addText(s);
+        System.out.println(s);
     }
 }

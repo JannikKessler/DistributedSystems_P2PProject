@@ -17,6 +17,7 @@ public class Variables {
         variables.put("gui_size", new Dimension(500, 400)); //500 400
         variables.put("font", new Font("Calibri", Font.PLAIN, 16));
         variables.put("font_headline", new Font("Calibri", Font.BOLD, 20));
+        variables.put("show_gui", true);
     }
 
     public static String getStringValue(String name) {
