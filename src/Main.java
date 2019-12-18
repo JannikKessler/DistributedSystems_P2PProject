@@ -13,7 +13,7 @@ public class Main {
 
 
             //startFew();
-            startMany(false);
+            startMany(true);
             //startPeer(3333, true);
             //startOnConsole(args);
 
