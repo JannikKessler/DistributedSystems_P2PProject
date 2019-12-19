@@ -180,9 +180,22 @@ public class Utilities {
         return (Boolean) Variables.getObject("show_gui");
     }
 
+    //Consolenausgaben
     public static void println(Gui g, String s) {
         if (isShowGui() && g != null)
             g.addText(s);
         System.out.println(s);
+    }
+
+    //TODO Nachrichtenausgaben
+    public static void printMsg(Gui g, String s) {
+        if (isShowGui() && g != null)
+            g.addText(s);
+        System.out.println(s);
+    }
+
+    //TODO
+    public static void setLeader(int id) {
+        
     }
 }

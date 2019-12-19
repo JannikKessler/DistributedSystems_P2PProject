@@ -193,6 +193,12 @@ public class Peer {
                                 inFromPeer.read(msg, 0, 10);
                                 id = processMsgMsg(msg, inFromPeer);
                                 break;
+                            case 9:
+                                //TODO
+                                break;
+                            case 10:
+                                //TODO
+                                break;
                             default:
                                 Utilities.switchDefault();
                         }
@@ -476,6 +482,25 @@ public class Peer {
         return id;
     }
 
+    private byte[] createAreYouAliveMsg() {
+        return new byte[0];
+    }
+
+    private int processAreYouAliveMsg(byte[] msg, OutputStream outToPeer) {
+        //Verarbeiten der Msg
+        //Erstellen einer Tag 5 Msg und senden
+        return -1; //gibt id des Peers zurück, der mir das Packet gesendet hat
+    }
+
+    private byte[] createIAmLeaderMsg() {
+        return new byte[0];
+    }
+
+    private int processIAmLeaderMsg() {
+        Utilities.setLeader(-1);
+        return -1;
+    }
+
     private boolean isServer() {
         return Utilities.getServerIp().equals("localhost") && myPeer.getPortAsInt() == Utilities.getStandardPort();
     }
@@ -578,6 +603,11 @@ public class Peer {
         }
     }
 
+    //TODO Emanuel
+    public PeerObject getPeerObject(int id) {
+        return null;
+    }
+
     public void startSearch(int destId) {
         try {
             if (isPeerInMyList(destId))
@@ -590,6 +620,15 @@ public class Peer {
         } catch (Exception e) {
             Utilities.modificationException(e);
         }
+    }
+
+    public void startLeaderElection() {
+
+        Thread t = new Thread(() -> {
+            //
+        });
+        t.start();
+        //TODO Wird aus der Gui aufgerufen
     }
 
     private boolean isPeerInMyList(int peerId) {

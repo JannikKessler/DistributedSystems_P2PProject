@@ -13,8 +13,8 @@ public class Main {
 
             //Utilities.setShowGui(false);
             //startPeerWithVariablesServer(3334); //int Port
-            startLocalServerAndOnePeer();
-            //startManyLocalServer(true); //boolean withServer
+            //startLocalServerAndOnePeer();
+            startManyLocalServer(true); //boolean withServer
 
             //startOnConsole(args);
 
