@@ -28,6 +28,7 @@ public class Gui extends JFrame {
     private JLabel lblHeadline;
     private JTable peerTable;
     private Peer peer;
+    private boolean isServer;
 
     private JPanel contentPane;
     private JPanel mainPanel;
@@ -52,9 +53,10 @@ public class Gui extends JFrame {
 
     private final String[] COLUMN_NAMES = {"ID", "IP", "Port"};
 
-    public Gui(String headline, Point location, Peer peer) {
+    public Gui(boolean isServer, Point location, Peer peer) {
 
-        setTitle(headline);
+        this.isServer = isServer;
+        setTitle((isServer) ? "Server" : "Peer");
         setSize(Utilities.getGuiSize());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
@@ -83,7 +85,7 @@ public class Gui extends JFrame {
         contentPane.add(mainPanel, BorderLayout.CENTER);
 
         // Headline
-        lblHeadline = new JLabel(headline);
+        lblHeadline = new JLabel(getTitle());
         lblHeadline.setFont(Utilities.getHeadlineFont());
         mainPanel.add(lblHeadline, BorderLayout.NORTH);
 
@@ -358,6 +360,11 @@ public class Gui extends JFrame {
     public void addText(String txt) {
 
         chatArea.append("\n" + txt);
+    }
+
+    public void setHeadline(String title) {
+        setTitle(title);
+        lblHeadline.setText(title);
     }
 
 }

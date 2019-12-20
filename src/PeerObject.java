@@ -110,4 +110,20 @@ public class PeerObject {
     public String toString() {
         return getIpAsString() + ":" + getPortAsInt() + "; " + getIdAsInt();
     }
+
+    public byte[] getPeerPackage() {
+
+        byte[] msg = new byte[8];
+
+        for (int i = 0; i < ip.length; i++)
+            msg[i] = ip[i];
+
+        for (int i = 0; i < port.length; i++)
+            msg[i + ip.length] = port[i];
+
+        for (int i = 0; i < id.length; i++)
+            msg[i + ip.length + port.length] = id[i];
+
+        return msg;
+    }
 }

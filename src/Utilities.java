@@ -196,6 +196,10 @@ public class Utilities {
 
     //TODO
     public static void setLeader(int id) {
-        
+
+    }
+
+    public static void printMetaInfo(Gui gui, PeerObject p, int tag, int version) {
+        println(gui, "[Von ID " + p.getIdAsInt() + "] Tag " + tag + " in Version " + version + " erhalten");
     }
 }

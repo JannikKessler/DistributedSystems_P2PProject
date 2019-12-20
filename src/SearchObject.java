@@ -12,12 +12,12 @@ public class SearchObject extends PeerObject {
         initSearchObject(ip, port, id, searchId, destId);
     }
 
-    public SearchObject(byte[] nodeSearchMsg) {
+    public SearchObject(PeerObject p, byte[] nodeSearchMsg) {
 
         initSearchObject(
-            Arrays.copyOfRange(nodeSearchMsg, 0, 4),
-            Arrays.copyOfRange(nodeSearchMsg, 4, 6),
-            Arrays.copyOfRange(nodeSearchMsg, 6, 8),
+            p.getIp(),
+            p.getPort(),
+            p.getId(),
             Arrays.copyOfRange(nodeSearchMsg, 8, 10),
             Arrays.copyOfRange(nodeSearchMsg, 10, 12));
 
