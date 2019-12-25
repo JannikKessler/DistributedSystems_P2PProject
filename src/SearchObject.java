@@ -18,8 +18,8 @@ public class SearchObject extends PeerObject {
             p.getIp(),
             p.getPort(),
             p.getId(),
-            Arrays.copyOfRange(nodeSearchMsg, 8, 10),
-            Arrays.copyOfRange(nodeSearchMsg, 10, 12));
+            Arrays.copyOfRange(nodeSearchMsg, 0, 2),
+            Arrays.copyOfRange(nodeSearchMsg, 2, 4));
 
         //System.out.println(toString());
     }
