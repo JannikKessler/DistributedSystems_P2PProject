@@ -90,7 +90,7 @@ public class Main {
                     p.startPeer();
                 });
                 t.start();
-                Thread.sleep(1000);
+                Thread.sleep(10);
             }
         }
 

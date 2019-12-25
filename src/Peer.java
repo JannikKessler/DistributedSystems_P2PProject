@@ -1,5 +1,6 @@
 import java.awt.*;
 import java.io.*;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -144,16 +145,15 @@ public class Peer {
                         InputStream inFromPeer = connectionSocket.getInputStream();
                         OutputStream outToPeer = connectionSocket.getOutputStream();
 
-                        byte[] msg = new byte[1];
+                        byte[] msg;
 
-                        inFromPeer.read(msg, 0, 1);
+                        msg = inFromPeer.readNBytes(1);
                         int tag = msg[0];
 
-                        inFromPeer.read(msg, 0, 1);
+                        msg = inFromPeer.readNBytes(1);
                         int version = msg[0];
 
-                        msg = new byte[8];
-                        inFromPeer.read(msg, 0, 8);
+                        msg = inFromPeer.readNBytes(8);
                         PeerObject peerFrom = new PeerObject(msg);
                         Utilities.printMetaInfo(gui, peerFrom, tag, version);
 
@@ -168,26 +168,22 @@ public class Peer {
                                 peerFrom.getOutToPeerStream().write(createNodeResponseMsg());
                                 break;
                             case 4:
-                                msg = new byte[24];
-                                inFromPeer.read(msg, 0, 24);
+                                msg = inFromPeer.readNBytes(24);
                                 processNodeResponeMessage(msg);
                                 break;
                             case 5:
                                 processIAmAliveMsg(peerFrom);
                                 break;
                             case 6:
-                                msg = new byte[4];
-                                inFromPeer.read(msg, 0, 4);
+                                msg = inFromPeer.readNBytes(4);
                                 processNodeSearchMsg(peerFrom, msg);
                                 break;
                             case 7:
-                                msg = new byte[2];
-                                inFromPeer.read(msg, 0, 2);
+                                msg = inFromPeer.readNBytes(2);
                                 processIAmFoundMsg(peerFrom, msg);
                                 break;
                             case 8:
-                                msg = new byte[2];
-                                inFromPeer.read(msg, 0, 2);
+                                msg = inFromPeer.readNBytes(2);
                                 processMsgMsg(peerFrom, msg, inFromPeer);
                                 break;
                             case 9:
@@ -202,6 +198,8 @@ public class Peer {
 
                         connectionSocket.close();
 
+                    } catch (ConnectException c) {
+                        Utilities.connectException(c);
                     } catch (Exception ioe) {
                         Utilities.errorMessage(ioe);
                     }
@@ -409,6 +407,7 @@ public class Peer {
     }
 
     private byte[] createMsgMsg(String txt) {
+
         byte[] msgHeader = new byte[10];
         msgHeader[0] = 8; // Tag
         msgHeader[1] = 1; // Version
@@ -435,8 +434,7 @@ public class Peer {
         addPeer(p);
         int length = Utilities.byteArrayToChar(msg);
 
-        byte[] msgMsg = new byte[length];
-        inFromPeer.read(msgMsg, 0, length);
+        byte[] msgMsg = inFromPeer.readNBytes(length);
         String txt = new String(msgMsg);
         int id = p.getIdAsInt();
         Utilities.printMsg(gui, "[Von ID " + id + "] " + txt);
@@ -446,19 +444,17 @@ public class Peer {
         return new byte[0];
     }
 
-    private int processAreYouAliveMsg(byte[] msg, OutputStream outToPeer) {
+    private void processAreYouAliveMsg(PeerObject p, OutputStream outToPeer) {
         //Verarbeiten der Msg
         //Erstellen einer Tag 5 Msg und senden
-        return -1; //gibt id des Peers zurück, der mir das Packet gesendet hat
     }
 
     private byte[] createIAmLeaderMsg() {
         return new byte[0];
     }
 
-    private int processIAmLeaderMsg() {
+    private void processIAmLeaderMsg() {
         Utilities.setLeader(-1);
-        return -1;
     }
 
     private boolean isServer() {
@@ -560,7 +556,31 @@ public class Peer {
     }
 
     //TODO Emanuel
-    public PeerObject getPeerObject(int id) {
+    public PeerObject getPeerObject(int id, int timeoutInMs) {
+
+        startSearch(id);
+        boolean inMyList = false;
+        PeerObject p = null;
+        long startMs = new Date().getTime();
+        while (!inMyList && new Date().getTime() - startMs < timeoutInMs) {
+            try {
+                Thread.sleep(10);
+                p = getPeerObjectFromList(id);
+                if (p != null) inMyList = true;
+            } catch (Exception e) {
+                Utilities.errorMessage(e);
+            }
+        }
+        return p;
+    }
+
+    private PeerObject getPeerObjectFromList(int id) {
+
+        for (PeerObject p : getPeerList()) {
+
+            if (id == p.getIdAsInt())
+                return p;
+        }
         return null;
     }
 
@@ -578,28 +598,51 @@ public class Peer {
         }
     }
 
+    //Wird aus der Gui aufgerufen
     public void startLeaderElection() {
 
         Thread t = new Thread(() -> {
-            //
+            try {
+                for (int i = myPeer.getIdAsInt() + 1; i < 25; i++) {
+                    PeerObject p = getPeerObject(i, 200);
+                    if (p != null) {
+                        p.getOutToPeerStream().write(createAreYouAliveMsg());
+                        byte[] respose = p.getInFromPeerStream().readNBytes(10);
+                        p.closeStreams();
+                        PeerObject p1 = new PeerObject(Arrays.copyOfRange(respose, 2, 10));
+                        if (p1.getIdAsInt() == i) {
+                            processIAmAliveMsg(p1);
+                            return;
+                        }
+                    }
+                }
+
+                for (int i = myPeer.getIdAsInt() - 1; i >= 0; i--) {
+                    PeerObject p = getPeerObject(i, 200);
+                    if (p != null) {
+                        p.getOutToPeerStream().write(createIAmLeaderMsg());
+                        p.closeStreams();
+                    }
+                }
+
+            } catch (Exception e) {
+                Utilities.errorMessage(e);
+            }
         });
         t.start();
-        //TODO Wird aus der Gui aufgerufen
     }
 
     private boolean isPeerInMyList(int peerId) {
-        try {
-            for (PeerObject po : getPeerList()) {
-                if (po.getIdAsInt() == peerId)
-                    return true;
-            }
-        } catch (Exception e) {
-            Utilities.modificationException(e);
-        }
-        return false;
+
+        return getPeerObjectFromList(peerId) != null;
     }
 
     public void sendMsg(String txt, int idInput) {
+
+        if (txt.equals("leader")) {
+            startLeaderElection();
+            return;
+        }
 
         Utilities.println(gui, "[An ID " + idInput + "] " + txt);
 

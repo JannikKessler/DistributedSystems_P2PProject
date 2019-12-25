@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.net.ConnectException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
@@ -201,5 +202,9 @@ public class Utilities {
 
     public static void printMetaInfo(Gui gui, PeerObject p, int tag, int version) {
         println(gui, "[Von ID " + p.getIdAsInt() + "] Tag " + tag + " in Version " + version + " erhalten");
+    }
+
+    public static void connectException(ConnectException c) {
+        System.err.println("Connection refused: connect");
     }
 }
