@@ -181,27 +181,43 @@ public class Utilities {
         return (Boolean) Variables.getObject("show_gui");
     }
 
-    //Consolenausgaben
-    public static void println(Gui g, String s) {
+    //TODO Msg-Panel
+    private static void printOnGuiMsgPanel(Peer i, String s) {
+        Gui g = i.getGui();
         if (isShowGui() && g != null)
             g.addText(s);
-        System.out.println(s);
     }
 
-    //TODO Nachrichtenausgaben
-    public static void printMsg(Gui g, String s) {
+    private static void printOnGuiLogPanel(Peer i, String s) {
+        Gui g = i.getGui();
         if (isShowGui() && g != null)
             g.addText(s);
-        System.out.println(s);
+    }
+
+    private static void printOnConsole(Peer i, String s) {
+        System.out.println(i.getMyPeer().getIdAsInt() + ": " + s);
+    }
+
+    //Consolenausgaben; i = mein Peer-Objekt
+    public static void printLogInformation(Peer i, String s) {
+        printOnGuiLogPanel(i, s);
+        printOnConsole(i, s);
+    }
+
+    public static void printMsg(Peer i, String s) {
+        printOnGuiMsgPanel(i, s);
+        printOnConsole(i, s);
+    }
+
+    public static void printMetaInfo(Peer i, PeerObject from, int tag, int version) {
+        String s = "[Von ID " + from.getIdAsInt() + "] Tag " + tag + " in Version " + version + " erhalten";
+        printOnGuiLogPanel(i, s);
+        printOnConsole(i, s);
     }
 
     //TODO
-    public static void setLeader(int id) {
-
-    }
-
-    public static void printMetaInfo(Gui gui, PeerObject p, int tag, int version) {
-        println(gui, "[Von ID " + p.getIdAsInt() + "] Tag " + tag + " in Version " + version + " erhalten");
+    public static void setLeader(Peer i, PeerObject leader) {
+        printLogInformation(i, "Leader ist " + leader.getIdAsInt());
     }
 
     public static void connectException(ConnectException c) {

@@ -35,9 +35,11 @@ public class PeerObject {
 
     public OutputStream getOutToPeerStream() throws Exception {
 
-        if (isSocketClosed())
-            createSocket();
-        return socket.getOutputStream();
+        synchronized (this) {
+            if (isSocketClosed())
+                createSocket();
+            return socket.getOutputStream();
+        }
     }
 
     private void createSocket() throws Exception {
@@ -52,14 +54,16 @@ public class PeerObject {
 
     public InputStream getInFromPeerStream() {
 
-        try {
-            if (isSocketClosed())
-                createSocket();
-            return socket.getInputStream();
-        } catch (Exception e) {
-            Utilities.errorMessage(e);
+        synchronized (this) {
+            try {
+                if (isSocketClosed())
+                    createSocket();
+                return socket.getInputStream();
+            } catch (Exception e) {
+                Utilities.errorMessage(e);
+            }
+            return null;
         }
-        return null;
     }
 
     public byte[] getPort() {
@@ -83,11 +87,13 @@ public class PeerObject {
     }
 
     public void closeStreams() {
-        try {
-            if (socket != null && !socket.isClosed())
-                socket.close();
-        } catch (Exception e) {
-            Utilities.errorMessage(e);
+        synchronized (this) {
+            try {
+                if (socket != null && !socket.isClosed())
+                    socket.close();
+            } catch (Exception e) {
+                Utilities.errorMessage(e);
+            }
         }
     }
 
