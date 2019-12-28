@@ -185,7 +185,6 @@ public class Peer {
                                 break;
                             case 9:
                                 outToPeer.write(createIAmAliveMsg());
-                                //connectionSocket.close();
                                 processAreYouAliveMsg();
                                 break;
                             case 10:
@@ -605,11 +604,14 @@ public class Peer {
     //Wird aus der Gui aufgerufen
     public void startLeaderElection() {
 
-       Thread t = new Thread(() -> {
+        int numberOfPeers = 30;
+        int timeout = 500;
+
+        Thread t = new Thread(() -> {
             try {
-                for (int i = myPeer.getIdAsInt() + 1; i < 25; i++) {
+                for (int i = myPeer.getIdAsInt() + 1; i < numberOfPeers; i++) {
                     modifyPeerList(REMOVE, getPeerObjectFromList(i));
-                    PeerObject p = getPeerObject(i, 400);
+                    PeerObject p = getPeerObject(i, timeout);
                     if (p != null) {
 
                         sendMsg(p, createAreYouAliveMsg());
@@ -626,9 +628,10 @@ public class Peer {
                 }
 
                 Utilities.printLogInformation(this, "Ich bin Leader");
+                Utilities.setLeader(this, myPeer);
 
                 for (int i = myPeer.getIdAsInt() - 1; i >= 0; i--) {
-                    PeerObject p = getPeerObject(i, 400);
+                    PeerObject p = getPeerObject(i, timeout);
                     if (p != null) {
                         sendMsg(p, createIAmLeaderMsg());
                         p.closeStreams();

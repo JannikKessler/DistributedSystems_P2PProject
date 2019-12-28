@@ -181,6 +181,10 @@ public class Utilities {
         return (Boolean) Variables.getObject("show_gui");
     }
 
+    private static String getTimeStamp() {
+        return "(" + new SimpleDateFormat("H:m:s").format(new Date()) + ")";
+    }
+
     //TODO Msg-Panel
     private static void printOnGuiMsgPanel(Peer i, String s) {
         Gui g = i.getGui();
@@ -191,11 +195,11 @@ public class Utilities {
     private static void printOnGuiLogPanel(Peer i, String s) {
         Gui g = i.getGui();
         if (isShowGui() && g != null)
-            g.addText(s);
+            g.addText(getTimeStamp() + " " + s);
     }
 
     private static void printOnConsole(Peer i, String s) {
-        System.out.println(i.getMyPeer().getIdAsInt() + ": " + s);
+        System.out.println(i.getMyPeer().getIdAsInt() + ": " + getTimeStamp() + " " + s);
     }
 
     //Consolenausgaben; i = mein Peer-Objekt
@@ -218,6 +222,7 @@ public class Utilities {
     //TODO
     public static void setLeader(Peer i, PeerObject leader) {
         printLogInformation(i, "Leader ist " + leader.getIdAsInt());
+        i.getGui().setHeadline(i.getGui().getTitle() + "; Leader: " + leader.getIdAsInt());
     }
 
     public static void connectException(ConnectException c) {
