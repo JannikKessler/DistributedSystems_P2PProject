@@ -185,10 +185,10 @@ public class Peer {
                                 processMsgMsg(peerFrom, msg8, inFromPeer);
                                 break;
                             case 9:
-                                //TODO
+                            	processAreYouAliveMsg(peerFrom, outToPeer);
                                 break;
                             case 10:
-                                //TODO
+                            	processIAmLeaderMsg();
                                 break;
                             default:
                                 Utilities.switchDefault();
@@ -433,16 +433,26 @@ public class Peer {
     }
 
     private byte[] createAreYouAliveMsg() {
-        return new byte[0];
+    	byte[] alive = new byte[10];
+    	alive[0] = 9;//Tag
+    	alive[1] = 1;//Version
+    	packPeerPackage(alive, 2, myPeer);
+        return alive;
     }
 
-    private void processAreYouAliveMsg(PeerObject p, OutputStream outToPeer) {
+    private void processAreYouAliveMsg(PeerObject p, OutputStream outToPeer) throws IOException {
         //Verarbeiten der Msg
         //Erstellen einer Tag 5 Msg und senden
+    	outToPeer.write(createIAmAliveMsg());
+    	startLeaderElection();
     }
 
     private byte[] createIAmLeaderMsg() {
-        return new byte[0];
+    	byte[] leader = new byte[10];
+    	leader[0] = 10;//Tag
+    	leader[1] = 1;//Version
+    	packPeerPackage(leader, 2, myPeer);
+        return leader;
     }
 
     private void processIAmLeaderMsg() {
