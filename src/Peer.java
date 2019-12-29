@@ -610,8 +610,10 @@ public class Peer {
         Thread t = new Thread(() -> {
             try {
                 for (int i = myPeer.getIdAsInt() + 1; i < numberOfPeers; i++) {
+
                     modifyPeerList(REMOVE, getPeerObjectFromList(i));
                     PeerObject p = getPeerObject(i, timeout);
+
                     if (p != null) {
 
                         sendMsg(p, createAreYouAliveMsg());
