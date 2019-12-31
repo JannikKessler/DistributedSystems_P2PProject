@@ -182,7 +182,7 @@ public class Utilities {
     }
 
     private static String getTimeStamp() {
-        return "(" + new SimpleDateFormat("H:m:s").format(new Date()) + ")";
+        return "(" + new SimpleDateFormat("HH:mm:ss").format(new Date()) + ")";
     }
 
     //TODO Msg-Panel

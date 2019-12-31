@@ -684,16 +684,16 @@ public class Peer {
         }
     }
 
-    public static void main(String[] args) {
-        Peer p = new Peer(3439);
-        p.startPeer();
-    }
-
     public Gui getGui() {
         return gui;
     }
 
     public PeerObject getMyPeer() {
         return myPeer;
+    }
+
+    public static void main(String[] args) {
+        Peer p = new Peer(3439);
+        p.startPeer();
     }
 }
