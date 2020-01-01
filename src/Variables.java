@@ -14,7 +14,7 @@ public class Variables {
         variables.put("time_server_max_without_keep_alive", 55000);
         variables.put("time_send_keep_alive", 25000);
         variables.put("screen_update_time", 1000);
-        variables.put("gui_size", new Dimension(200, 200)); //500 400
+        variables.put("gui_size", new Dimension(500, 400)); //500 400
         variables.put("font", new Font("Calibri", Font.PLAIN, 16));
         variables.put("font_headline", new Font("Calibri", Font.BOLD, 20));
         variables.put("show_gui", true);

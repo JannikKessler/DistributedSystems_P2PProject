@@ -4,51 +4,65 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class Main {
 
-    private static boolean exitOnWindowClose = false;
-
     public static void main(String[] args) {
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
-            //Utilities.setShowGui(false);
-            //startPeerWithVariablesServer(3334); //int Port
-            //startLocalServerAndOnePeer();
-            //startManyLocalServer(true); //boolean withServer
+            Utilities.setServerIp("localhost");
+            Utilities.setShowGui(true);
 
-            startOnConsole(args);
+            switch (0) {
+                case 0:startWithGui();break;
+                case 1:startOnConsole(args); break;
+                case 2:startPeer(3334);break;
+                case 3:startServerAndOnePeer();break;
+                case 4:startManyPeers(true);
+            }
 
         } catch (Exception e) {
             Utilities.errorMessage(e);
         }
     }
 
-    public static boolean isExitOnWindowClose() {
-        return exitOnWindowClose;
+    public static void startWithGui() {
+
+        String[] optionen = {"Lokaler Server", "Lokaler Server + ein Peer", "Lokaler Server + viele Peers"};
+        switch (JOptionPane.showOptionDialog(null, "Bitte Startoption auswählen", "Startoption wählen", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, optionen, 2)) {
+            case 0:
+                startServer();
+                break;
+            case 1:
+                startServerAndOnePeer();
+                break;
+            case 2:
+                startManyPeers(true);
+                break;
+            default:
+                Utilities.fehlermeldungBenutzerdefiniert("Fehler in Startauswahl");
+        }
     }
 
     private static void startOnConsole(String[] args) {
-        exitOnWindowClose = true;
         Utilities.setServerIp(args[0]);
-        startPeerWithVariablesServer(Integer.parseInt(args[1]));
+        startPeer(Integer.parseInt(args[1]));
         Variables.putObject("show_gui", Boolean.parseBoolean(args[2]));
     }
 
-    private static void startLocalServerAndOnePeer() {
+    private static void startServerAndOnePeer() {
 
-        startLocalServer();
-        startPeerWithVariablesServer(3334);
+        startServer();
+        startPeer(3334);
     }
 
-    private static void startPeerWithVariablesServer(int port) {
+    private static void startPeer(int port) {
         Peer p = new Peer(port);
         p.startPeer();
     }
 
-    private static void startLocalServer() {
+    private static void startServer() {
 
         try {
-            Variables.putObject("server_ip", "localhost");
             Thread st = new Thread(() -> {
                 Peer server = new Peer();
                 server.startPeer();
@@ -60,40 +74,45 @@ public class Main {
         }
     }
 
-    private static void startManyLocalServer(boolean withServer) throws Exception {
+    private static void startManyPeers(boolean withServer) {
 
-        if (withServer)
-            startLocalServer();
+        try {
 
-        int maxNebeneinander, maxUntereinander;
+            int maxNebeneinander, maxUntereinander;
 
-        maxNebeneinander = Utilities.getScreenDimension().width / (Utilities.getGuiSize().width + 20);
-        maxUntereinander = Utilities.getScreenDimension().height / (Utilities.getGuiSize().height + 20);
+            maxNebeneinander = Utilities.getScreenDimension().width / (Utilities.getGuiSize().width + 20);
+            maxUntereinander = Utilities.getScreenDimension().height / (Utilities.getGuiSize().height + 20);
 
-        AtomicInteger port = new AtomicInteger(3334);
+            AtomicInteger port = new AtomicInteger(3333);
 
-        for (int i = 0; i < maxNebeneinander; i++) {
-            for (int j = 0; j < maxUntereinander; j++) {
+            if (!withServer)
+                port.getAndIncrement();
 
-                AtomicInteger stelleX = new AtomicInteger(i);
-                AtomicInteger stelleY = new AtomicInteger(j);
+            for (int i = 0; i < maxNebeneinander; i++) {
+                for (int j = 0; j < maxUntereinander; j++) {
 
-                Thread t = new Thread(() -> {
+                    AtomicInteger stelleX = new AtomicInteger(i);
+                    AtomicInteger stelleY = new AtomicInteger(j);
 
-                    int x, y;
+                    Thread t = new Thread(() -> {
 
-                    x = 10 + stelleX.get() * (Utilities.getGuiSize().width + 10);
-                    y = 10 + stelleY.get() * (Utilities.getGuiSize().height + 10);
+                        int x, y;
 
-                    Point location = new Point(x, y);
-                    Peer p = new Peer(port.getAndIncrement(), location);
-                    p.startPeer();
-                });
-                t.start();
-                Thread.sleep(500);
+                        x = 10 + stelleX.get() * (Utilities.getGuiSize().width + 10);
+                        y = 10 + stelleY.get() * (Utilities.getGuiSize().height + 10);
+
+                        Point location = new Point(x, y);
+                        Peer p = new Peer(port.getAndIncrement(), location);
+                        p.startPeer();
+                    });
+                    t.start();
+                    Thread.sleep(500);
+                }
             }
-        }
 
-        while (true) Thread.sleep(Long.MAX_VALUE);
+            while (true) Thread.sleep(Long.MAX_VALUE);
+        } catch (Exception e) {
+            Utilities.errorMessage(e);
+        }
     }
 }

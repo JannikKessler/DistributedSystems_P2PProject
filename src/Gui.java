@@ -7,17 +7,7 @@ import java.awt.Point;
 import java.awt.event.*;
 import java.util.ArrayList;
 
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
-import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
@@ -67,7 +57,7 @@ public class Gui extends JFrame {
             public void windowClosing(WindowEvent e) {
                 dispose();
                 peer.exit();
-                if (Main.isExitOnWindowClose()) {
+                if (JOptionPane.showConfirmDialog(null, "Komplettes Programm beenden?", "Schließen", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION) {
                     System.exit(0);
                 }
             }
