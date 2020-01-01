@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.awt.*;
 import java.net.ConnectException;
 import java.net.Inet4Address;
@@ -39,6 +40,8 @@ public class Utilities {
     }
 
     public static void errorMessage(Exception e) {
+        if (isShowGui())
+            JOptionPane.showMessageDialog(null, e.toString());
         e.printStackTrace();
     }
 
