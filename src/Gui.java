@@ -1,9 +1,4 @@
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Point;
+import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
 
@@ -15,7 +10,6 @@ import javax.swing.text.DefaultCaret;
 
 public class Gui extends JFrame {
 
-    private JLabel lblHeadline;
     private JTable peerTable;
     private Peer peer;
     private boolean isServer;
@@ -29,17 +23,27 @@ public class Gui extends JFrame {
     private JSplitPane topPanel;
     private JPanel bottomPanel;
     private JSplitPane splitPanel;
+    private JSplitPane bottomSplitPanel;
+    private JPanel chatPanel;
+    private JPanel consolePanel;
     private JScrollPane scrollPaneChat;
+    private JScrollPane scrollPaneConsole;
     private JPanel msgPanel;
     private JPanel msgSendPanel;
 
+    private JLabel labelBold;
+    private JLabel labelThin;
+    private JLabel labelRight;
     private JTextField searchField;
     private JButton searchButton;
-    private JLabel searchText;
     private JTextArea chatArea;
+    private JTextArea consoleArea;
     private JTextField msgField;
-    private JLabel msgSendText;
     private JButton msgSendButton;
+    private JButton leaderButton;
+    private JLabel leaderLabel;
+    private JTextField msgIDField;
+    private JLabel msgIDLabel;
 
     private final String[] COLUMN_NAMES = {"ID", "IP", "Port"};
 
@@ -75,9 +79,21 @@ public class Gui extends JFrame {
         contentPane.add(mainPanel, BorderLayout.CENTER);
 
         // Headline
-        lblHeadline = new JLabel(getTitle());
-        lblHeadline.setFont(Utilities.getHeadlineFont());
-        mainPanel.add(lblHeadline, BorderLayout.NORTH);
+        JPanel headlinePanel = new JPanel();
+        headlinePanel.setLayout(new BoxLayout(headlinePanel, BoxLayout.X_AXIS));
+
+        labelBold = new JLabel(getTitle() + "  ");
+        labelBold.setFont(Utilities.getHeadlineFont());
+        labelThin = new JLabel();
+        labelThin.setFont(Utilities.getHeadlineFontThin());
+        labelRight = new JLabel();
+        labelRight.setFont(Utilities.getHeadlineFont());
+
+        headlinePanel.add(labelBold);
+        headlinePanel.add(labelThin);
+        headlinePanel.add(Box.createHorizontalGlue());
+        headlinePanel.add(labelRight);
+        mainPanel.add(headlinePanel, BorderLayout.NORTH);
 
         // PeerList
         listPanel = new JPanel();
@@ -106,43 +122,13 @@ public class Gui extends JFrame {
                 return c;
             }
         };
-        peerTable.addMouseListener(new MouseListener() {
-
-            @Override
-            public void mouseReleased(MouseEvent e) {
-                updateSelection();
-            }
-
-            @Override
-            public void mousePressed(MouseEvent e) {
-                updateSelection();
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                // TODO Auto-generated method stub
-
-            }
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                updateSelection();
-            }
-        });
 
         peerTable.setFont(Utilities.getNormalFont());
-        peerTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
         peerTable.getColumnModel().getColumn(0).setPreferredWidth(0);
         peerTable.getColumnModel().getColumn(2).setPreferredWidth(0);
         peerTable.setShowGrid(false);
-
+        peerTable.setFocusable(false);
+        peerTable.setRowSelectionAllowed(false);
         peerTable.setRowHeight(Utilities.getNormalFont().getSize() + 6);
 
         scrollPane = new JScrollPane(peerTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
@@ -154,18 +140,26 @@ public class Gui extends JFrame {
         searchOuterPanel = new JPanel();
         searchPanel = new JPanel();
         searchOuterPanel.setLayout(new BoxLayout(searchOuterPanel, BoxLayout.Y_AXIS));
-        searchPanel.setLayout(new GridLayout(3, 1));
+        searchPanel.setLayout(new GridLayout(4, 1));
+
+
+
+
         searchField = new JTextField();
-        searchField.setMaximumSize(new Dimension(Integer.MAX_VALUE, searchField.getPreferredSize().height));
         searchField.setToolTipText("Geben Sie eine Peer-ID ein.");
         searchField.setFont(Utilities.getNormalFont());
+        searchField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                checkSearchButton();
+            }
+        });
+
+
         searchButton = new JButton("Nach ID suchen");
         searchButton.setToolTipText("Suchen Sie im P2P-Netzwerk nach der eingegebenen ID.");
         searchButton.setFont(Utilities.getNormalFont());
-        searchText = new JLabel("Ungültige ID");
-        searchText.setFont(Utilities.getNormalFont());
-        searchText.setForeground(Color.red);
-        searchText.setVisible(false);
+        searchButton.setEnabled(false);
 
         searchButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -173,11 +167,25 @@ public class Gui extends JFrame {
             }
         });
 
+
+        leaderButton = new JButton("Leader-Election starten");
+        leaderButton.setToolTipText("Führen Sie eine \"Leader-Election\" aus.");
+        leaderButton.setFont(Utilities.getNormalFont());
+        leaderLabel = new JLabel("Derzeitige Leader: -", SwingConstants.CENTER);
+        leaderLabel.setFont(Utilities.getNormalFont());
+        leaderButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                startLeaderElection();
+            }
+        });
+
+
         searchPanel.add(searchField);
         searchPanel.add(searchButton);
-        searchPanel.add(searchText);
+        searchPanel.add(leaderButton);
+        searchPanel.add(leaderLabel);
+        searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 130));
         searchPanel.setBorder(new EmptyBorder(0, 10, 0, 0));
-        searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
         searchOuterPanel.add(searchPanel);
 
         // TopPanel
@@ -185,14 +193,16 @@ public class Gui extends JFrame {
         topPanel.setOneTouchExpandable(true);
         topPanel.setDividerLocation((int) (getWidth() * 0.55));
         listPanel.setMinimumSize(new Dimension(120, 0));
-        searchOuterPanel.setMinimumSize(new Dimension(145, 0));
+        searchOuterPanel.setMinimumSize(new Dimension(150, 0));
         topPanel.setBorder(null);
         topPanel.setBorder(new EmptyBorder(0, 0, 10, 0));
 
         // BottomPanel
         bottomPanel = new JPanel();
         bottomPanel.setLayout(new BorderLayout());
-        bottomPanel.setBorder(new EmptyBorder(10, 0, 0, 0));
+
+        chatPanel = new JPanel();
+        chatPanel.setLayout(new BorderLayout());
         chatArea = new JTextArea();
         chatArea.setFont(Utilities.getNormalFont());
         DefaultCaret caret = (DefaultCaret) chatArea.getCaret();
@@ -200,10 +210,35 @@ public class Gui extends JFrame {
         chatArea.setLineWrap(true);
         chatArea.setWrapStyleWord(true);
         chatArea.setEditable(false);
-        chatArea.append("Ausgabe");
+        chatArea.append("Chat:");
         scrollPaneChat = new JScrollPane(chatArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-        bottomPanel.add(scrollPaneChat, BorderLayout.CENTER);
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        chatPanel.add(scrollPaneChat, BorderLayout.CENTER);
+
+        consolePanel = new JPanel();
+        consolePanel.setLayout(new BorderLayout());
+        consoleArea = new JTextArea();
+        consoleArea.setFont(Utilities.getNormalFont());
+        DefaultCaret caret2 = (DefaultCaret) consoleArea.getCaret();
+        caret2.setUpdatePolicy(DefaultCaret.ALWAYS_UPDATE);
+        consoleArea.setLineWrap(true);
+        consoleArea.setWrapStyleWord(true);
+        consoleArea.setEditable(false);
+        consoleArea.append("Konsole:");
+        scrollPaneConsole = new JScrollPane(consoleArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        consolePanel.add(scrollPaneConsole, BorderLayout.CENTER);
+
+
+        bottomSplitPanel =  new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, chatPanel, consolePanel);
+        bottomSplitPanel.setOneTouchExpandable(true);
+        bottomSplitPanel.setDividerLocation((int) (getWidth() * 0.55));
+        chatPanel.setMinimumSize(new Dimension(120, 0));
+        consolePanel.setMinimumSize(new Dimension(120, 0));
+        bottomSplitPanel.setBorder(null);
+
+        bottomPanel.add(bottomSplitPanel, BorderLayout.CENTER);
+
 
         // MsgPanel
         msgPanel = new JPanel();
@@ -226,15 +261,31 @@ public class Gui extends JFrame {
         });
 
         msgSendPanel = new JPanel();
-        msgSendPanel.setLayout(new BorderLayout());
-        msgSendText = new JLabel();
-        msgSendText.setFont(Utilities.getNormalFont());
-        msgSendPanel.add(msgSendText, BorderLayout.CENTER);
+        msgSendPanel.setLayout(new BoxLayout(msgSendPanel, BoxLayout.X_AXIS));
         msgPanel.add(msgSendPanel, BorderLayout.SOUTH);
         msgSendButton = new JButton("Senden");
-        msgSendPanel.add(msgSendButton, BorderLayout.EAST);
+        msgIDField = new JTextField();
+        msgIDField.setFont(Utilities.getNormalFont());
+        msgIDField.setMaximumSize(new Dimension(50, Integer.MAX_VALUE));
+        msgIDField.setMinimumSize(new Dimension(50, Integer.MAX_VALUE));
+        msgIDField.setPreferredSize(new Dimension(50,10));
+        msgIDLabel  = new JLabel("An ID schicken:  ");
+        msgIDLabel.setFont(Utilities.getNormalFont());
+
+        msgIDField.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                checkSendButton();
+            }
+        });
+
+        msgSendPanel.add(msgIDLabel);
+        msgSendPanel.add(msgIDField);
+        msgSendPanel.add(Box.createHorizontalGlue());
+        msgSendPanel.add(msgSendButton);
         msgSendButton.setFont(Utilities.getNormalFont());
         msgSendButton.setPreferredSize(new Dimension(100, 30));
+        msgSendButton.setEnabled(false);
 
         msgSendButton.addActionListener(new ActionListener() {
 
@@ -248,7 +299,7 @@ public class Gui extends JFrame {
         splitPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topPanel, bottomPanel);
         splitPanel.setOneTouchExpandable(true);
         splitPanel.setDividerLocation(130);
-        topPanel.setMinimumSize(new Dimension(0, 85));
+        topPanel.setMinimumSize(new Dimension(0, 110));
         bottomPanel.setMinimumSize(new Dimension(0, 150));
         splitPanel.setBorder(null);
         mainPanel.add(splitPanel, BorderLayout.CENTER);
@@ -262,7 +313,6 @@ public class Gui extends JFrame {
 
     public void setPeerList(ArrayList<PeerObject> peerListe) {
 
-        int selectedNr = peerTable.getSelectedRow();
         DefaultTableModel tableModel = (DefaultTableModel) peerTable.getModel();
         if (tableModel.getRowCount() > 0) {
             for (int i = tableModel.getRowCount() - 1; i > -1; i--) {
@@ -282,32 +332,25 @@ public class Gui extends JFrame {
         }
         tableModel.fireTableDataChanged();
 
-        if (selectedNr != -1 && selectedNr < peerTable.getRowCount()) {
-            peerTable.setRowSelectionInterval(selectedNr, selectedNr);
-        }
-        updateSelection();
-
         repaint();
         revalidate();
     }
 
     private void searchForID() {
-        int id = getSearchFieldID();
+        int id = getFieldID(searchField);
         if (id != -1) {
-            searchText.setVisible(false);
             searchField.setText("");
             peer.startSearch(id);
-        } else {
-            searchText.setVisible(true);
         }
+        checkSearchButton();
     }
 
-    private int getSearchFieldID() {
-        if (searchText.getText().equals(""))
-            return -1;
-        else {
+    private int getFieldID(JTextField tf) {
+            if(tf.getText().equals("")){
+                return -1;
+            }
             try {
-                int id = Integer.parseInt(searchField.getText().trim());
+                int id = Integer.parseInt(tf.getText().trim());
                 if (id <= 65535)
                     return id;
                 else
@@ -315,46 +358,54 @@ public class Gui extends JFrame {
             } catch (Exception e) {
                 return -1;
             }
-        }
     }
 
-    private void updateSelection() {
-        int selectedNr = peerTable.getSelectedRow();
-        if (selectedNr == -1) {
-            msgSendText.setVisible(false);
-        } else {
-            msgSendText.setVisible(true);
-            String id = (String) peerTable.getValueAt(selectedNr, 0);
-            msgSendText.setText("An ID " + id + " schicken");
-        }
-        checkSendButton();
-    }
 
     private void checkSendButton() {
-        int selectedNr = peerTable.getSelectedRow();
-        if (selectedNr != -1 && msgField.getText().equals("") == false) {
+        if (getFieldID(msgIDField) != -1 && msgField.getText().equals("") == false) {
             msgSendButton.setEnabled(true);
         } else {
             msgSendButton.setEnabled(false);
         }
     }
 
+    private void checkSearchButton(){
+        if(getFieldID(searchField) == -1){
+            searchButton.setEnabled(false);
+        } else {
+            searchButton.setEnabled(true);
+        }
+    }
+
     private void sendMsg() {
-        int id = Integer.parseInt((String) peerTable.getValueAt(peerTable.getSelectedRow(), 0));
+        int id = getFieldID(msgIDField);
         String msg = msgField.getText();
 
         peer.sendMsg(msg, id);
         msgField.setText("");
+        checkSendButton();
     }
 
-    public void addText(String txt) {
+    private void startLeaderElection() {
+        peer.startLeaderElection();
+    }
 
+    public void addTextToChat(String txt) {
         chatArea.append("\n" + txt);
     }
 
-    public void setHeadline(String title) {
-        setTitle(title);
-        lblHeadline.setText(title);
+    public void addTextToConsole(String txt) {
+        consoleArea.append("\n" + txt);
     }
 
+    public void setLeaderId(int id){
+        leaderLabel.setText("Derzeitige Leader: " + id);
+    }
+
+    public void setHeadline(String s, String ipAsString, int portAsInt, int idAsInt) {
+        labelBold.setText(s + "  ");
+        labelThin.setText(ipAsString + ":" + portAsInt);
+        labelRight.setText("ID: " + idAsInt);
+        setTitle(s + ", " + ipAsString + ":" + portAsInt + ", ID: " + idAsInt);
+    }
 }

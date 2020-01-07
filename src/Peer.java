@@ -128,8 +128,7 @@ public class Peer {
             });
             keepAlive.start();
 
-            gui.setHeadline((isServer ? "Server" : "Peer") + " " + myPeer.getIpAsString() + ":"
-                + myPeer.getPortAsInt() + "; " + myPeer.getIdAsInt());
+            gui.setHeadline((isServer ? "Server" : "Peer"), myPeer.getIpAsString(), myPeer.getPortAsInt(), myPeer.getIdAsInt());
 
             ServerSocket myServer = new ServerSocket(myPeer.getPortAsInt());
 
@@ -654,12 +653,15 @@ public class Peer {
 
     public void sendMsg(String txt, int idInput) {
 
-        if (txt.equals("leader")) {
-            startLeaderElection();
+        Utilities.printLogInformation(this, "[An ID " + idInput + "] " + txt);
+        int timeout = 500;
+        PeerObject p = getPeerObject(idInput, timeout);
+
+        if (p == null) {
+            Utilities.printMsg(this,"ID: " + idInput + " konnte nicht gefunden werden.");
             return;
         }
-
-        Utilities.printLogInformation(this, "[An ID " + idInput + "] " + txt);
+        Utilities.printMsg(this, "[An ID " + idInput + "] " + txt);
 
         byte[] ip = null;
         byte[] port = null;
