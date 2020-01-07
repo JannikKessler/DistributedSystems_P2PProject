@@ -653,31 +653,34 @@ public class Peer {
 
     public void sendMsg(String txt, int idInput) {
 
-        Utilities.printLogInformation(this, "[An ID " + idInput + "] " + txt);
-        int timeout = 500;
-        PeerObject p = getPeerObject(idInput, timeout);
+        Thread t = new Thread(() -> {
+            Utilities.printLogInformation(this, "[An ID " + idInput + "] " + txt);
+            int timeout = 2000;
+            PeerObject p = getPeerObject(idInput, timeout);
 
-        if (p == null) {
-            Utilities.printMsg(this,"ID: " + idInput + " konnte nicht gefunden werden.");
-            return;
-        }
-        Utilities.printMsg(this, "[An ID " + idInput + "] " + txt);
-
-        byte[] ip = null;
-        byte[] port = null;
-        byte[] id = null;
-
-        for (PeerObject peerObject : getPeerList()) {
-            if (peerObject.getIdAsInt() == idInput) {
-                ip = peerObject.getIp();
-                port = peerObject.getPort();
-                id = peerObject.getId();
+            if (p == null) {
+                Utilities.printMsg(this,"ID: " + idInput + " konnte nicht gefunden werden.");
+                return;
             }
-        }
+            Utilities.printMsg(this, "[An ID " + idInput + "] " + txt);
 
-        PeerObject po = new PeerObject(ip, port, id);
-        sendMsg(po, createMsgMsg(txt));
-        po.closeStreams();
+            byte[] ip = null;
+            byte[] port = null;
+            byte[] id = null;
+
+            for (PeerObject peerObject : getPeerList()) {
+                if (peerObject.getIdAsInt() == idInput) {
+                    ip = peerObject.getIp();
+                    port = peerObject.getPort();
+                    id = peerObject.getId();
+                }
+            }
+
+            PeerObject po = new PeerObject(ip, port, id);
+            sendMsg(po, createMsgMsg(txt));
+            po.closeStreams();
+            });
+        t.start();
     }
 
     public ArrayList<PeerObject> getPeerList() {
