@@ -6,12 +6,12 @@ public class TestStart {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 
-            Utilities.setServerIp("localhost");
-            Utilities.setShowGui(true);
-
             Startoptionen s = Startoptionen.getInstance();
 
-            switch (4) {
+            Utilities.setServerIp("localhost");
+            Utilities.setShowGui(false);
+
+            switch (2) {
                 case 0:
                     s.startWithGui();
                     break;
@@ -19,7 +19,7 @@ public class TestStart {
                     s.startOnConsole(args);
                     break;
                 case 2:
-                    s.startPeer(3334);
+                    s.startPeer(3333);
                     break;
                 case 3:
                     s.startServerAndOnePeer();
@@ -29,7 +29,7 @@ public class TestStart {
             }
 
         } catch (Exception e) {
-            Utilities.errorMessage(e);
+            Utilities.staticErrorMessage(e);
         }
     }
 }

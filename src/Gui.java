@@ -45,6 +45,8 @@ public class Gui extends JFrame {
     private JTextField msgIDField;
     private JLabel msgIDLabel;
 
+    private static String leaderText = "Derzeitiger Leader: ";
+
     private final String[] COLUMN_NAMES = {"ID", "IP", "Port"};
 
     public Gui(boolean isServer, Point location, Peer peer) {
@@ -61,7 +63,7 @@ public class Gui extends JFrame {
             public void windowClosing(WindowEvent e) {
                 dispose();
                 peer.exit();
-                if (JOptionPane.showConfirmDialog(null, "Komplettes Programm beenden?", "Schließen", JOptionPane.YES_NO_OPTION)==JOptionPane.YES_OPTION) {
+                if (Startoptionen.getInstance().alwaysExitOnClose || JOptionPane.showConfirmDialog(null, "Komplettes Programm beenden?", "Schließen", JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
                     System.exit(0);
                 }
             }
@@ -143,8 +145,6 @@ public class Gui extends JFrame {
         searchPanel.setLayout(new GridLayout(4, 1));
 
 
-
-
         searchField = new JTextField();
         searchField.setToolTipText("Geben Sie eine Peer-ID ein.");
         searchField.setFont(Utilities.getNormalFont());
@@ -171,7 +171,7 @@ public class Gui extends JFrame {
         leaderButton = new JButton("Leader-Election starten");
         leaderButton.setToolTipText("Führen Sie eine \"Leader-Election\" aus.");
         leaderButton.setFont(Utilities.getNormalFont());
-        leaderLabel = new JLabel("Derzeitige Leader: -", SwingConstants.CENTER);
+        leaderLabel = new JLabel(leaderText + "-", SwingConstants.CENTER);
         leaderLabel.setFont(Utilities.getNormalFont());
         leaderButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -212,7 +212,7 @@ public class Gui extends JFrame {
         chatArea.setEditable(false);
         chatArea.append("Chat:");
         scrollPaneChat = new JScrollPane(chatArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         chatPanel.add(scrollPaneChat, BorderLayout.CENTER);
 
         consolePanel = new JPanel();
@@ -226,11 +226,11 @@ public class Gui extends JFrame {
         consoleArea.setEditable(false);
         consoleArea.append("Konsole:");
         scrollPaneConsole = new JScrollPane(consoleArea, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS,
-                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+            JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         consolePanel.add(scrollPaneConsole, BorderLayout.CENTER);
 
 
-        bottomSplitPanel =  new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, chatPanel, consolePanel);
+        bottomSplitPanel = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, chatPanel, consolePanel);
         bottomSplitPanel.setOneTouchExpandable(true);
         bottomSplitPanel.setDividerLocation((int) (getWidth() * 0.55));
         chatPanel.setMinimumSize(new Dimension(120, 0));
@@ -268,8 +268,8 @@ public class Gui extends JFrame {
         msgIDField.setFont(Utilities.getNormalFont());
         msgIDField.setMaximumSize(new Dimension(50, Integer.MAX_VALUE));
         msgIDField.setMinimumSize(new Dimension(50, Integer.MAX_VALUE));
-        msgIDField.setPreferredSize(new Dimension(50,10));
-        msgIDLabel  = new JLabel("An ID schicken:  ");
+        msgIDField.setPreferredSize(new Dimension(50, 10));
+        msgIDLabel = new JLabel("An ID schicken:  ");
         msgIDLabel.setFont(Utilities.getNormalFont());
 
         msgIDField.addKeyListener(new KeyAdapter() {
@@ -346,18 +346,18 @@ public class Gui extends JFrame {
     }
 
     private int getFieldID(JTextField tf) {
-            if(tf.getText().equals("")){
+        if (tf.getText().equals("")) {
+            return -1;
+        }
+        try {
+            int id = Integer.parseInt(tf.getText().trim());
+            if (id <= 65535)
+                return id;
+            else
                 return -1;
-            }
-            try {
-                int id = Integer.parseInt(tf.getText().trim());
-                if (id <= 65535)
-                    return id;
-                else
-                    return -1;
-            } catch (Exception e) {
-                return -1;
-            }
+        } catch (Exception e) {
+            return -1;
+        }
     }
 
 
@@ -369,8 +369,8 @@ public class Gui extends JFrame {
         }
     }
 
-    private void checkSearchButton(){
-        if(getFieldID(searchField) == -1){
+    private void checkSearchButton() {
+        if (getFieldID(searchField) == -1) {
             searchButton.setEnabled(false);
         } else {
             searchButton.setEnabled(true);
@@ -387,7 +387,7 @@ public class Gui extends JFrame {
     }
 
     private void startLeaderElection() {
-        peer.startLeaderElection();
+        peer.startLeaderElection(true);
     }
 
     public void addTextToChat(String txt) {
@@ -398,8 +398,12 @@ public class Gui extends JFrame {
         consoleArea.append("\n" + txt);
     }
 
-    public void setLeaderId(int id){
-        leaderLabel.setText("Derzeitige Leader: " + id);
+    public void setLeaderId(int id) {
+        leaderLabel.setText(leaderText + id);
+    }
+
+    public int getLeaderId() {
+        return Integer.parseInt(leaderLabel.getText().replace(leaderText, ""));
     }
 
     public void setHeadline(String s, String ipAsString, int portAsInt, int idAsInt) {

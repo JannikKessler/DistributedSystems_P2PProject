@@ -1,8 +1,10 @@
+import javax.swing.*;
 import java.awt.*;
 import java.io.*;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -16,10 +18,11 @@ public class Peer {
     private int searchIDCounter = 0;
     private Gui gui;
     private Thread keepAlive;
-    private boolean exit = false;
     private boolean isServer = false;
     private PeerObject myPeer;
     private Point location;
+    private ServerSocket myServer;
+    private PeerUtilities peerUtilities;
 
     // Server Attribute
     private int idCounter = 0;
@@ -42,10 +45,11 @@ public class Peer {
     }
 
     private void init(int port, Point location) {
+        peerUtilities = new PeerUtilities(this);
         peerList = new ArrayList<>();
         searchList = new ArrayList<>();
-        myPeer = new PeerObject(Utilities.getMyIpAsByteArray(),
-            Utilities.charToByteArray((char) ((port == -1) ? Utilities.getStandardPort() : port)), new byte[2]);
+        myPeer = new PeerObject(peerUtilities.getMyIpAsByteArray(),
+            peerUtilities.charToByteArray((char) ((port == -1) ? peerUtilities.getStandardPort() : port)), new byte[2]);
         isServer = isServer();
         this.location = location;
     }
@@ -55,20 +59,20 @@ public class Peer {
         try {
 
             BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
-            Utilities.printMyIp();
+            peerUtilities.printMyIp();
 
             if (Utilities.isShowGui()) {
                 gui = new Gui(isServer, location, this);
-                AnzeigeThread at = new AnzeigeThread(gui, peerList);
+                AnzeigeThread at = new AnzeigeThread(this);
                 at.start();
             }
 
             if (!isServer) {
 
-                entryServer = new PeerObject(Utilities.getServerIpAsByteArray(), Utilities.getStandardPortAsByteArray(),
+                entryServer = new PeerObject(peerUtilities.getServerIpAsByteArray(), peerUtilities.getStandardPortAsByteArray(),
                     new byte[2]);
 
-                System.out.println("Client gestartet");
+                peerUtilities.printLogInformation("Client gestartet");
 
                 byte[] entryMsg = createEntryMsg();
                 while (!sendMsg(entryServer, entryMsg)) {
@@ -81,7 +85,7 @@ public class Peer {
                 entryServer.closeStreams();
 
             } else {
-                System.out.println("Server gestartet");
+                peerUtilities.printLogInformation("Server gestartet");
 
                 cleanPeerList = new Thread(() -> {
                     try {
@@ -96,12 +100,9 @@ public class Peer {
                             }
                             deletePeersFromPeerList(deleteList);
                             Thread.sleep(Variables.getIntValue("time_serverlist_clean"));
-
-                            if (exit)
-                                return;
                         }
                     } catch (Exception e) {
-                        Utilities.errorMessage(e);
+                        peerUtilities.errorMessage(e);
                     }
                 });
                 cleanPeerList.start();
@@ -110,7 +111,6 @@ public class Peer {
             keepAlive = new Thread(() -> {
                 while (true) {
                     try {
-
                         if (isServer) {
                             addPeer(myPeer);
                         } else {
@@ -119,24 +119,23 @@ public class Peer {
                             entryServer.closeStreams();
                         }
                         Thread.sleep(Variables.getIntValue("time_send_keep_alive"));
-                        if (exit)
-                            return;
                     } catch (Exception e) {
-                        Utilities.errorMessage(e);
+                        peerUtilities.errorMessage(e);
                     }
                 }
             });
             keepAlive.start();
 
-            gui.setHeadline((isServer ? "Server" : "Peer"), myPeer.getIpAsString(), myPeer.getPortAsInt(), myPeer.getIdAsInt());
+            if (peerUtilities.isShowGui())
+                gui.setHeadline((isServer ? "Server" : "Peer"), myPeer.getIpAsString(), myPeer.getPortAsInt(), myPeer.getIdAsInt());
 
-            ServerSocket myServer = new ServerSocket(myPeer.getPortAsInt());
+            myServer = new ServerSocket(myPeer.getPortAsInt());
 
-            while (true) {
+            while (!myServer.isClosed()) {
 
                 Socket connectionSocket = myServer.accept();
 
-                Thread t = new Thread(() -> {
+                Thread mainThread = new Thread(() -> {
 
                     try {
 
@@ -158,7 +157,7 @@ public class Peer {
                                 processEntryMessage(peerFrom);
                                 outToPeer.write(createEntryReponseMsg(peerFrom));
                                 break;
-                            // Case 2 wird in einer anderen Methode verarbeitet
+                            //Tag 2 wird in einer anderen Methode verarbeitet
                             case 3:
                                 processNodeRequestMsg(peerFrom);
                                 peerFrom.getOutToPeerStream().write(createNodeResponseMsg());
@@ -190,25 +189,28 @@ public class Peer {
                                 processIAmLeaderMsg(peerFrom);
                                 break;
                             default:
-                                Utilities.switchDefault();
+                                peerUtilities.switchDefault();
                         }
 
                         connectionSocket.close();
 
-                        Utilities.printMetaInfo(this, peerFrom, tag, version);
+                        peerUtilities.printMetaInfo(peerFrom, tag, version);
 
                     } catch (ConnectException c) {
-                        Utilities.connectException(c);
+                        peerUtilities.connectException(c);
                     } catch (Exception ioe) {
-                        Utilities.errorMessage(ioe);
+                        peerUtilities.errorMessage(ioe);
                     }
 
                 });
-                t.start();
+                mainThread.start();
             }
 
+        } catch (SocketException s) {
+            peerUtilities.printLogInformation("Socket geschlossen");
+            //SocketExceptions werden abgefangen, da diese nur geworfen werden, wenn der Socket durch exit geschlossen wird
         } catch (Exception e) {
-            Utilities.errorMessage(e);
+            peerUtilities.errorMessage(e);
         }
     }
 
@@ -244,7 +246,7 @@ public class Peer {
             if (getPeerList().size() > i + 1)
                 o = getPeerList().get(i + 1);
 
-            packPeerPackage(msg, i * Utilities.getPeerPackLength() + 4, o);
+            packPeerPackage(msg, i * peerUtilities.getPeerPackLength() + 4, o);
         }
 
         return msg;
@@ -255,16 +257,16 @@ public class Peer {
         int tag = entyResponeMessage[0];
         int version = entyResponeMessage[1];
 
-        Utilities.printMetaInfo(this, p, tag, version);
+        peerUtilities.printMetaInfo(p, tag, version);
 
         byte[] id = Arrays.copyOfRange(entyResponeMessage, 2, 4);
         myPeer.setId(id);
 
-        for (int i = 4; i < entyResponeMessage.length; i += Utilities.getPeerPackLength()) {
+        for (int i = 4; i < entyResponeMessage.length; i += peerUtilities.getPeerPackLength()) {
 
-            byte[] peerPack = Arrays.copyOfRange(entyResponeMessage, i, i + Utilities.getPeerPackLength());
+            byte[] peerPack = Arrays.copyOfRange(entyResponeMessage, i, i + peerUtilities.getPeerPackLength());
 
-            if (!Utilities.isArrayEmty(peerPack)) {
+            if (!peerUtilities.isArrayEmty(peerPack)) {
 
                 PeerObject po = new PeerObject(peerPack);
                 if (sendMsg(po, createNodeRequestMsg()))
@@ -300,7 +302,7 @@ public class Peer {
             if (getPeerList().size() > i + 1)
                 o = getPeerList().get(i + 1);
 
-            packPeerPackage(msg, i * Utilities.getPeerPackLength() + 2, o);
+            packPeerPackage(msg, i * peerUtilities.getPeerPackLength() + 2, o);
         }
 
         return msg;
@@ -308,11 +310,11 @@ public class Peer {
 
     private void processNodeResponeMessage(byte[] msg) {
 
-        for (int i = 0; i < msg.length; i += Utilities.getPeerPackLength()) {
+        for (int i = 0; i < msg.length; i += peerUtilities.getPeerPackLength()) {
 
-            byte[] peerPack = Arrays.copyOfRange(msg, i, i + Utilities.getPeerPackLength());
+            byte[] peerPack = Arrays.copyOfRange(msg, i, i + peerUtilities.getPeerPackLength());
 
-            if (!Utilities.isArrayEmty(peerPack)) {
+            if (!peerUtilities.isArrayEmty(peerPack)) {
                 PeerObject po = new PeerObject(peerPack);
                 addPeer(po);
             }
@@ -337,8 +339,8 @@ public class Peer {
         nodeSearchMsg[0] = (byte) 6; // Tag
         nodeSearchMsg[1] = (byte) 1; // Version
         packPeerPackage(nodeSearchMsg, 2, myPeer);
-        byte[] searchID = Utilities.charToByteArray((char) ++searchIDCounter);
-        byte[] destID = Utilities.charToByteArray((char) destId);
+        byte[] searchID = peerUtilities.charToByteArray((char) ++searchIDCounter);
+        byte[] destID = peerUtilities.charToByteArray((char) destId);
         nodeSearchMsg[10] = searchID[0];
         nodeSearchMsg[11] = searchID[1];
         nodeSearchMsg[12] = destID[0];
@@ -355,7 +357,7 @@ public class Peer {
         for (SearchObject so : searchList) {
             // Ich habe die Msg schon einmal empfangen.
             if (so.getIdAsInt() == incomingSearch.getIdAsInt() && incomingSearch.getSearchIdAsInt() == so.getSearchIdAsInt()) {
-                //Utilities.println(gui, myPeer.getPortAsInt() + " hat den Search schonmal erhalten.");
+                //peerUtilities.println(gui, myPeer.getPortAsInt() + " hat den Search schonmal erhalten.");
                 return;
             }
         }
@@ -364,7 +366,7 @@ public class Peer {
 
         // Fall 1 Ich bin der gesuchte -> rückantwort
         if (incomingSearch.getDestIdAsInt() == myPeer.getIdAsInt()) {
-            Utilities.printLogInformation(this, "Ich bin der gesuchte Peer");
+            peerUtilities.printLogInformation("Ich bin der gesuchte Peer");
             sendMsg(incomingSearch, createIAmFoundMsg(incomingSearch.getSearchId()));
             incomingSearch.closeStreams();
             return;
@@ -372,7 +374,7 @@ public class Peer {
 
         // Fall 2 Ich bin nicht der gesuchte & ich habe noch nie die Msg empfangen -> weiterleiten
         byte[] meta = {(byte) 6, (byte) 1};
-        byte[] newMsg = Utilities.addAll(meta, Utilities.addAll(p.getPeerPackage(), msg));
+        byte[] newMsg = peerUtilities.addAll(meta, peerUtilities.addAll(p.getPeerPackage(), msg));
         for (PeerObject po : getPeerList()) {
             sendMsg(po, newMsg);
             po.closeStreams();
@@ -393,7 +395,7 @@ public class Peer {
     // Ip-Port entnehmen und in Liste speichern.
     private void processIAmFoundMsg(PeerObject p, byte[] msg) {
 
-        int searchId = Utilities.byteArrayToChar(msg);
+        int searchId = peerUtilities.byteArrayToChar(msg);
         addPeer(p);
     }
 
@@ -405,7 +407,7 @@ public class Peer {
         packPeerPackage(msgHeader, 2, myPeer);
 
         byte[] msgText = txt.getBytes();
-        byte[] msgLength = Utilities.charToByteArray((char) msgText.length);
+        byte[] msgLength = peerUtilities.charToByteArray((char) msgText.length);
 
         int arrLength = 12 + msgText.length;
 
@@ -423,12 +425,12 @@ public class Peer {
     private void processMsgMsg(PeerObject p, byte[] msg, InputStream inFromPeer) throws Exception {
 
         addPeer(p);
-        int length = Utilities.byteArrayToChar(msg);
+        int length = peerUtilities.byteArrayToChar(msg);
 
         byte[] msgMsg = inFromPeer.readNBytes(length);
         String txt = new String(msgMsg);
         int id = p.getIdAsInt();
-        Utilities.printMsg(this, "[Von ID " + id + "] " + txt);
+        peerUtilities.printMsg("[Von ID " + id + "] " + txt);
     }
 
     private byte[] createAreYouAliveMsg() {
@@ -440,7 +442,7 @@ public class Peer {
     }
 
     private void processAreYouAliveMsg() {
-        startLeaderElection();
+        startLeaderElection(false);
     }
 
     private byte[] createIAmLeaderMsg() {
@@ -452,11 +454,11 @@ public class Peer {
     }
 
     private void processIAmLeaderMsg(PeerObject p) {
-        Utilities.setLeader(this, p);
+        peerUtilities.setLeader(p.getIdAsInt());
     }
 
     private boolean isServer() {
-        return Utilities.getServerIp().equals("localhost") && myPeer.getPortAsInt() == Utilities.getStandardPort();
+        return peerUtilities.getServerIp().equals("localhost") && myPeer.getPortAsInt() == peerUtilities.getStandardPort();
     }
 
     /**
@@ -472,13 +474,21 @@ public class Peer {
             po.getOutToPeerStream().write(msg);
             return true;
         } catch (Exception e) {
-            // Utilities.errorMessage(e);
+            // peerUtilities.errorMessage(e);
             return false;
         }
     }
 
     public void exit() {
-        exit = true;
+        try {
+            myServer.close();
+            keepAlive.stop();
+            if (isServer)
+                cleanPeerList.stop();
+        } catch (Exception e) {
+            peerUtilities.errorMessage(e);
+        }
+
     }
 
     public void packPeerPackage(byte[] destination, int offset, PeerObject p) {
@@ -492,7 +502,7 @@ public class Peer {
                 destination[offset + i] = peerPacket[i];
 
         } catch (Exception e) {
-            Utilities.errorMessage(e);
+            peerUtilities.errorMessage(e);
         }
     }
 
@@ -514,7 +524,7 @@ public class Peer {
                     peerList.remove(insertORemove);
                     break;
                 default:
-                    Utilities.switchDefault();
+                    peerUtilities.switchDefault();
             }
 
         }
@@ -533,7 +543,7 @@ public class Peer {
             modifyPeerList(INSERT, peerObject);
             reducePeerList();
         } catch (Exception e) {
-            Utilities.modificationException(e);
+            peerUtilities.modificationException(e);
         }
     }
 
@@ -549,7 +559,7 @@ public class Peer {
             }
             deletePeersFromPeerList(deleteList);
         } catch (Exception e) {
-            Utilities.modificationException(e);
+            peerUtilities.modificationException(e);
         }
     }
 
@@ -565,7 +575,7 @@ public class Peer {
                 p = getPeerObjectFromList(id);
                 inMyList = (p != null);
             } catch (Exception e) {
-                Utilities.errorMessage(e);
+                peerUtilities.errorMessage(e);
             }
         }
         return p;
@@ -575,8 +585,9 @@ public class Peer {
 
         for (PeerObject p : getPeerList()) {
 
-            if (id == p.getIdAsInt())
+            if (id == p.getIdAsInt()) {
                 return p;
+            }
         }
         return null;
     }
@@ -596,54 +607,103 @@ public class Peer {
                 po.closeStreams();
             }
         } catch (Exception e) {
-            Utilities.modificationException(e);
+            peerUtilities.modificationException(e);
         }
     }
 
-    //Wird aus der Gui aufgerufen
-    public void startLeaderElection() {
+    public void startLeaderElection(boolean showProgressBar) {
+
+        peerUtilities.setLeader(-1);
+        peerUtilities.printLogInformation("Leader-Election gestartet");
 
         int numberOfPeers = 30;
         int timeout = 500;
 
-        Thread t = new Thread(() -> {
-            try {
-                for (int i = myPeer.getIdAsInt() + 1; i < numberOfPeers; i++) {
+        SwingWorker<Integer, Integer> sw = new SwingWorker<>() {
+            @Override
+            protected Integer doInBackground() {
 
-                    modifyPeerList(REMOVE, getPeerObjectFromList(i));
-                    PeerObject p = getPeerObject(i, timeout);
+                ProgressBar progressBar = new ProgressBar(gui);
+                if (showProgressBar) {
+                    progressBar.setVisible(true);
+                    progressBar.setProgressBar(0);
+                }
 
-                    if (p != null) {
+                Thread t = new Thread(() -> {
+                    try {
 
-                        sendMsg(p, createAreYouAliveMsg());
-                        Utilities.printLogInformation(this, "test an " + p.getIdAsInt());
-                        byte[] respose = p.getInFromPeerStream().readNBytes(10);
-                        p.closeStreams();
-                        PeerObject p1 = new PeerObject(Arrays.copyOfRange(respose, 2, 10));
-                        if (p1.getIdAsInt() == i) {
-                            Utilities.printLogInformation(this, "Antwort auf Tag 9 erhalten");
-                            processIAmAliveMsg(p1);
-                            return;
+                        for (int i = myPeer.getIdAsInt() + 1; i < numberOfPeers; i++) {
+
+                            if (showProgressBar)
+                                progressBar.setProgressBar(i * 100 / (2 * numberOfPeers));
+
+                            PeerObject pS = getPeerObject(i, timeout);
+
+                            if (pS != null) {
+
+                                try {
+                                    PeerObject p = pS.clone();
+                                    sendMsg(p, createAreYouAliveMsg());
+                                    byte[] respose = p.getInFromPeerStream().readNBytes(10);
+                                    p.closeStreams();
+                                    PeerObject p1 = new PeerObject(Arrays.copyOfRange(respose, 2, 10));
+                                    if (p1.getIdAsInt() == i) {
+                                        peerUtilities.printLogInformation("Antwort auf Tag 9 erhalten");
+                                        processIAmAliveMsg(p1);
+
+                                        if (showProgressBar) {
+                                            while (gui.getLeaderId() == -1) {
+                                                int percent = 100 * (progressBar.getWert() + 1) / 99;
+                                                if (percent >= 100) {
+                                                    JOptionPane.showMessageDialog(gui, "Leader-Election war nicht erfolgreich", "fehler", JOptionPane.ERROR_MESSAGE);
+                                                    progressBar.dispose();
+                                                    return;
+                                                } else {
+                                                    progressBar.setProgressBar(percent);
+                                                    Thread.sleep(200);
+                                                }
+                                            }
+                                            progressBar.setProgressBar(100);
+                                            Thread.sleep(500);
+                                            progressBar.dispose();
+                                        }
+                                        return;
+                                    }
+                                } catch (Exception e) {
+                                    modifyPeerList(REMOVE, pS);
+                                    //peerUtilities.errorMessage(e);
+                                    //Es kann sein, dass ein PeerObjekt nicht erreichbar ist
+                                    //Diese Fehlermeldung wird hier abgefangen
+                                    continue;
+                                }
+                            }
                         }
+
+                        peerUtilities.printLogInformation("Ich bin Leader");
+                        peerUtilities.setLeader(myPeer.getIdAsInt());
+
+                        for (int i = myPeer.getIdAsInt() - 1; i >= 0; i--) {
+                            PeerObject p = getPeerObject(i, timeout);
+                            if (p != null) {
+                                sendMsg(p, createIAmLeaderMsg());
+                                p.closeStreams();
+                            }
+                            if (showProgressBar)
+                                progressBar.setProgressBar(100 - (i * 100 / (2 * numberOfPeers)));
+                        }
+
+                        if (showProgressBar)
+                            progressBar.dispose();
+
+                    } catch (Exception e) {
+                        peerUtilities.errorMessage(e);
                     }
-                }
-
-                Utilities.printLogInformation(this, "Ich bin Leader");
-                Utilities.setLeader(this, myPeer);
-
-                for (int i = myPeer.getIdAsInt() - 1; i >= 0; i--) {
-                    PeerObject p = getPeerObject(i, timeout);
-                    if (p != null) {
-                        sendMsg(p, createIAmLeaderMsg());
-                        p.closeStreams();
-                    }
-                }
-
-            } catch (Exception e) {
-                Utilities.errorMessage(e);
+                });
+                t.start();
+                return 0;
             }
-        });
-        t.start();
+        };
+        sw.execute();
     }
 
     private boolean isPeerInMyList(int peerId) {
@@ -654,15 +714,15 @@ public class Peer {
     public void sendMsg(String txt, int idInput) {
 
         Thread t = new Thread(() -> {
-            Utilities.printLogInformation(this, "[An ID " + idInput + "] " + txt);
+            peerUtilities.printLogInformation("[An ID " + idInput + "] " + txt);
             int timeout = 2000;
             PeerObject p = getPeerObject(idInput, timeout);
 
             if (p == null) {
-                Utilities.printMsg(this,"ID: " + idInput + " konnte nicht gefunden werden.");
+                peerUtilities.printMsg("ID: " + idInput + " konnte nicht gefunden werden.");
                 return;
             }
-            Utilities.printMsg(this, "[An ID " + idInput + "] " + txt);
+            peerUtilities.printMsg("[An ID " + idInput + "] " + txt);
 
             byte[] ip = null;
             byte[] port = null;
@@ -679,7 +739,7 @@ public class Peer {
             PeerObject po = new PeerObject(ip, port, id);
             sendMsg(po, createMsgMsg(txt));
             po.closeStreams();
-            });
+        });
         t.start();
     }
 
@@ -695,6 +755,10 @@ public class Peer {
 
     public PeerObject getMyPeer() {
         return myPeer;
+    }
+
+    public PeerUtilities getPeerUtilities() {
+        return peerUtilities;
     }
 
     public static void main(String[] args) {

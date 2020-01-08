@@ -6,6 +6,7 @@ import java.util.Date;
 
 public class PeerObject {
 
+
     private byte[] port = new byte[2];
     private byte[] ip = new byte[4];
     private byte[] id = new byte[2];
@@ -60,7 +61,7 @@ public class PeerObject {
                     createSocket();
                 return socket.getInputStream();
             } catch (Exception e) {
-                Utilities.errorMessage(e);
+                //Utilities.staticErrorMessage(e);
             }
             return null;
         }
@@ -92,7 +93,7 @@ public class PeerObject {
                 if (socket != null && !socket.isClosed())
                     socket.close();
             } catch (Exception e) {
-                Utilities.errorMessage(e);
+                Utilities.staticErrorMessage(e);
             }
         }
     }
@@ -131,5 +132,9 @@ public class PeerObject {
             msg[i + ip.length + port.length] = id[i];
 
         return msg;
+    }
+
+    public PeerObject clone() {
+        return new PeerObject(ip, port, id);
     }
 }

@@ -5,15 +5,21 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Startoptionen {
 
     private static Startoptionen instance;
+    public boolean alwaysExitOnClose = false;
 
     private Startoptionen() {
 
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            UIManager.put("OptionPane.cancelButtonText", "Abbrechen");
+            UIManager.put("OptionPane.noButtonText", "Nein");
+            UIManager.put("OptionPane.okButtonText", "Ok");
+            UIManager.put("OptionPane.yesButtonText", "Ja");
+
             Utilities.setServerIp("localhost");
             Utilities.setShowGui(true);
         } catch (Exception e) {
-            Utilities.errorMessage(e);
+            Utilities.staticErrorMessage(e);
         }
     }
 
@@ -25,12 +31,14 @@ public class Startoptionen {
 
     public void startWithGui() {
 
-        String[] optionen = {"Lokaler Server", "Ein Peer", "Lokaler Server + ein Peer", "Lokaler Server + viele Peers"};
+        String[] optionen = {"Lokaler Server", "Ein Peer", "Lokaler Server + ein Peer", "Lokaler Server + viele Peers", "Viele Peers"};
         switch (JOptionPane.showOptionDialog(null, "Bitte Startoption auswählen", "Startoption wählen", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, optionen, 2)) {
             case 0:
+                alwaysExitOnClose = true;
                 startServer();
                 break;
             case 1:
+                alwaysExitOnClose = true;
                 startPeer(Integer.parseInt(JOptionPane.showInputDialog("Bitte Port eingeben")));
                 break;
             case 2:
@@ -39,19 +47,23 @@ public class Startoptionen {
             case 3:
                 startManyPeers(true);
                 break;
+            case 4:
+                startManyPeers(false);
+                break;
             default:
-                Utilities.fehlermeldungBenutzerdefiniert("Fehler in Startauswahl");
+                Utilities.staticErrorMessage(new Exception("Fehler in Startauswahl"));
+                break;
         }
     }
 
     public void startOnConsole(String[] args) {
+        alwaysExitOnClose = true;
         Utilities.setServerIp(args[0]);
         startPeer(Integer.parseInt(args[1]));
         Variables.putObject("show_gui", Boolean.parseBoolean(args[2]));
     }
 
     public void startServerAndOnePeer() {
-
         startServer();
         startPeer(3334);
     }
@@ -62,7 +74,6 @@ public class Startoptionen {
     }
 
     public void startServer() {
-
         try {
             Thread st = new Thread(() -> {
                 Peer server = new Peer();
@@ -71,7 +82,7 @@ public class Startoptionen {
             st.start();
             Thread.sleep(1000);
         } catch (Exception e) {
-            Utilities.errorMessage(e);
+            Utilities.staticErrorMessage(e);
         }
     }
 
@@ -107,13 +118,13 @@ public class Startoptionen {
                         p.startPeer();
                     });
                     t.start();
-                    Thread.sleep(500);
+                    Thread.sleep(1000);
                 }
             }
 
             while (true) Thread.sleep(Long.MAX_VALUE);
         } catch (Exception e) {
-            Utilities.errorMessage(e);
+            Utilities.staticErrorMessage(e);
         }
     }
 }

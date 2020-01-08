@@ -2,23 +2,21 @@ import java.util.ArrayList;
 
 public class AnzeigeThread extends Thread {
 
-    private Gui gui;
-    private ArrayList<PeerObject> peerList;
+    private Peer i;
 
-    public AnzeigeThread(Gui gui, ArrayList<PeerObject> peerList) {
-        this.gui = gui;
-        this.peerList = peerList;
+    public AnzeigeThread(Peer i) {
+        this.i = i;
     }
 
     @Override
     public void run() {
         try {
             while (true) {
-                Utilities.printPeerList(gui, peerList, false);
+                i.getPeerUtilities().printPeerList(i, false);
                 Thread.sleep(Utilities.getScreenUpdateTime());
             }
         } catch (Exception e) {
-            Utilities.errorMessage(e);
+            i.getPeerUtilities().errorMessage(e);
         }
     }
 }
