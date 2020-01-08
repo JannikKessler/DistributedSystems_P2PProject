@@ -10,11 +10,13 @@ public class Variables {
         variables.put("server_ip", "localhost"); //5.230.22.146 Dieser Server ist immer erreichbar und auf dem Stand vom 11.12.19 12:20 Uhr
         variables.put("standard_port", 3333);
         variables.put("peer_pack_length", 8);
+        variables.put("max_peers_in_network", 30);
         variables.put("time_serverlist_clean", 60000);
         variables.put("time_server_max_without_keep_alive", 55000);
         variables.put("time_send_keep_alive", 25000);
         variables.put("screen_update_time", 1000);
-        variables.put("gui_size", new Dimension(400, 350)); //650 500
+        variables.put("time_between_peer_starts", 1000);
+        variables.put("gui_size", new Dimension(650, 500)); //650 500
         variables.put("font", new Font("Calibri", Font.PLAIN, 16));
         variables.put("font_headline", new Font("Calibri", Font.BOLD, 20));
         variables.put("font_headline_thin", new Font("Calibri", Font.PLAIN, 20));

@@ -9,9 +9,9 @@ public class TestStart {
             Startoptionen s = Startoptionen.getInstance();
 
             Utilities.setServerIp("localhost");
-            Utilities.setShowGui(false);
+            Utilities.setShowGui(true);
 
-            switch (2) {
+            switch (4) {
                 case 0:
                     s.startWithGui();
                     break;
@@ -25,7 +25,7 @@ public class TestStart {
                     s.startServerAndOnePeer();
                     break;
                 case 4:
-                    s.startManyPeers(true);
+                    s.startManyPeers(true, 30);
             }
 
         } catch (Exception e) {

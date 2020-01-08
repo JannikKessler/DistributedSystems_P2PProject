@@ -31,29 +31,8 @@ public class Startoptionen {
 
     public void startWithGui() {
 
-        String[] optionen = {"Lokaler Server", "Ein Peer", "Lokaler Server + ein Peer", "Lokaler Server + viele Peers", "Viele Peers"};
-        switch (JOptionPane.showOptionDialog(null, "Bitte Startoption auswählen", "Startoption wählen", JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, optionen, 2)) {
-            case 0:
-                alwaysExitOnClose = true;
-                startServer();
-                break;
-            case 1:
-                alwaysExitOnClose = true;
-                startPeer(Integer.parseInt(JOptionPane.showInputDialog("Bitte Port eingeben")));
-                break;
-            case 2:
-                startServerAndOnePeer();
-                break;
-            case 3:
-                startManyPeers(true);
-                break;
-            case 4:
-                startManyPeers(false);
-                break;
-            default:
-                Utilities.staticErrorMessage(new Exception("Fehler in Startauswahl"));
-                break;
-        }
+        StartPanel sp = new StartPanel(this);
+        sp.setVisible(true);
     }
 
     public void startOnConsole(String[] args) {
@@ -86,39 +65,52 @@ public class Startoptionen {
         }
     }
 
-    public void startManyPeers(boolean withServer) {
+    public void startManyPeers(boolean withServer, int numberOfPeers) {
 
         try {
 
-            int maxNebeneinander, maxUntereinander;
+            int nebeneinander = Utilities.getScreenDimension().width / (Utilities.getGuiSize().width + 10);
+            int untereinander = Utilities.getScreenDimension().height / (Utilities.getGuiSize().height + 10);
 
-            maxNebeneinander = Utilities.getScreenDimension().width / (Utilities.getGuiSize().width + 20);
-            maxUntereinander = Utilities.getScreenDimension().height / (Utilities.getGuiSize().height + 20);
+            while (nebeneinander * untereinander < numberOfPeers) {
+                nebeneinander++;
+                untereinander++;
+            }
 
             AtomicInteger port = new AtomicInteger(3333);
 
             if (!withServer)
                 port.getAndIncrement();
 
-            for (int i = 0; i < maxNebeneinander; i++) {
-                for (int j = 0; j < maxUntereinander; j++) {
+            int k = 0;
 
-                    AtomicInteger stelleX = new AtomicInteger(i);
-                    AtomicInteger stelleY = new AtomicInteger(j);
+            for (int i = 0; i < nebeneinander; i++) {
+                for (int j = 0; j < untereinander; j++) {
 
-                    Thread t = new Thread(() -> {
+                    int w = Utilities.getScreenDimension().width / nebeneinander;
+                    int h = Utilities.getScreenDimension().height / untereinander;
 
-                        int x, y;
+                    if (k < numberOfPeers) {
 
-                        x = 10 + stelleX.get() * (Utilities.getGuiSize().width + 10);
-                        y = 10 + stelleY.get() * (Utilities.getGuiSize().height + 10);
+                        AtomicInteger stelleX = new AtomicInteger(i);
+                        AtomicInteger stelleY = new AtomicInteger(j);
 
-                        Point location = new Point(x, y);
-                        Peer p = new Peer(port.getAndIncrement(), location);
-                        p.startPeer();
-                    });
-                    t.start();
-                    Thread.sleep(1000);
+                        Thread t = new Thread(() -> {
+
+                            int x, y;
+
+                            x = stelleX.get() * (w + 10);
+                            y = stelleY.get() * (h + 10);
+
+                            Point location = new Point(x, y);
+                            Peer p = new Peer(port.getAndIncrement(), location);
+                            p.startPeer();
+                        });
+                        t.start();
+                        Thread.sleep(Variables.getIntValue("time_between_peer_starts"));
+
+                        k++;
+                    }
                 }
             }
 

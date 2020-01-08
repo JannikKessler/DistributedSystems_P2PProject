@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 
+@SuppressWarnings("AccessStaticViaInstance")
 public class Peer {
 
     // Geteilte Attribute
@@ -58,7 +59,6 @@ public class Peer {
 
         try {
 
-            BufferedReader inFromUser = new BufferedReader(new InputStreamReader(System.in));
             peerUtilities.printMyIp();
 
             if (Utilities.isShowGui()) {
@@ -183,7 +183,7 @@ public class Peer {
                                 break;
                             case 9:
                                 outToPeer.write(createIAmAliveMsg());
-                                processAreYouAliveMsg();
+                                processAreYouAliveMsg(peerFrom);
                                 break;
                             case 10:
                                 processIAmLeaderMsg(peerFrom);
@@ -441,7 +441,8 @@ public class Peer {
         return alive;
     }
 
-    private void processAreYouAliveMsg() {
+    private void processAreYouAliveMsg(PeerObject p) {
+        addPeer(p);
         startLeaderElection(false);
     }
 
@@ -616,8 +617,8 @@ public class Peer {
         peerUtilities.setLeader(-1);
         peerUtilities.printLogInformation("Leader-Election gestartet");
 
-        int numberOfPeers = 30;
-        int timeout = 500;
+        int numberOfPeers = Variables.getIntValue("max_peers_in_network");
+        int timeout = 20 * numberOfPeers;
 
         SwingWorker<Integer, Integer> sw = new SwingWorker<>() {
             @Override
@@ -632,7 +633,7 @@ public class Peer {
                 Thread t = new Thread(() -> {
                     try {
 
-                        for (int i = myPeer.getIdAsInt() + 1; i < numberOfPeers; i++) {
+                        for (int i = myPeer.getIdAsInt() + 1; i <= numberOfPeers; i++) {
 
                             if (showProgressBar)
                                 progressBar.setProgressBar(i * 100 / (2 * numberOfPeers));
@@ -655,12 +656,12 @@ public class Peer {
                                             while (gui.getLeaderId() == -1) {
                                                 int percent = 100 * (progressBar.getWert() + 1) / 99;
                                                 if (percent >= 100) {
-                                                    JOptionPane.showMessageDialog(gui, "Leader-Election war nicht erfolgreich", "fehler", JOptionPane.ERROR_MESSAGE);
+                                                    JOptionPane.showMessageDialog(progressBar, "Leader-Election war nicht erfolgreich", "Fehler", JOptionPane.ERROR_MESSAGE);
                                                     progressBar.dispose();
                                                     return;
                                                 } else {
                                                     progressBar.setProgressBar(percent);
-                                                    Thread.sleep(200);
+                                                    Thread.sleep(timeout);
                                                 }
                                             }
                                             progressBar.setProgressBar(100);

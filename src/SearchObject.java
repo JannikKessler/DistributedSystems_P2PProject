@@ -20,8 +20,6 @@ public class SearchObject extends PeerObject {
             p.getId(),
             Arrays.copyOfRange(nodeSearchMsg, 0, 2),
             Arrays.copyOfRange(nodeSearchMsg, 2, 4));
-
-        //System.out.println(toString());
     }
 
     private void initSearchObject(byte[] ip, byte[] port, byte[] id, byte[] searchId, byte[] destId) {
