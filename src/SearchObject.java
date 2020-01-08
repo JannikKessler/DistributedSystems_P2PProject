@@ -6,8 +6,6 @@ public class SearchObject extends PeerObject {
     private byte[] searchId = new byte[2];
     private byte[] destId = new byte[2];
 
-    //TODO Konstruktoren Implementieren mit ip, port, id, searchid, timestamp
-
     public SearchObject(byte[] ip, byte[] port, byte[] id, byte[] searchId, byte[] destId) {
         initSearchObject(ip, port, id, searchId, destId);
     }
