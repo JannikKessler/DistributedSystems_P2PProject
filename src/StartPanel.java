@@ -9,6 +9,7 @@ public class StartPanel extends JFrame {
     private JTextField txtWidth;
     private JTextField txtTimeBetweenPeerStarts;
     private JTextField txtMaxPeersInNetwork;
+    private JTextField txtServerIp;
 
     public StartPanel(Startoptionen so) {
 
@@ -38,6 +39,14 @@ public class StartPanel extends JFrame {
         JSeparator sp02 = new JSeparator();
         sp02.setVisible(false);
         mainPanel.add(sp02);
+
+        JLabel lblServerIP = new JLabel("Server-IP");
+        lblServerIP.setFont(Utilities.getNormalFont());
+        mainPanel.add(lblServerIP);
+
+        txtServerIp = new JTextField(Utilities.getServerIp());
+        txtServerIp.setFont(Utilities.getNormalFont());
+        mainPanel.add(txtServerIp);
 
         JLabel lblHeight = new JLabel("Höhe");
         lblHeight.setFont(Utilities.getNormalFont());
@@ -113,6 +122,7 @@ public class StartPanel extends JFrame {
         dispose();
 
         try {
+            Utilities.setServerIp(txtServerIp.getText());
             Variables.putObject("gui_size", new Dimension(Integer.parseInt(txtWidth.getText()), Integer.parseInt(txtHeight.getText())));
             Variables.putObject("time_between_peer_starts", Integer.parseInt(txtTimeBetweenPeerStarts.getText()));
             Variables.putObject("max_peers_in_network", Integer.parseInt(txtMaxPeersInNetwork.getText()));
