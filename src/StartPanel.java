@@ -81,37 +81,27 @@ public class StartPanel extends JFrame {
 
         JButton btnLocalServer = new JButton("Lokaler Server");
         btnLocalServer.setFont(Utilities.getNormalFont());
-        btnLocalServer.addActionListener(e -> {
-            end(0);
-        });
+        btnLocalServer.addActionListener(e -> end(0));
         mainPanel.add(btnLocalServer);
 
         JButton btnOnePeer = new JButton("Ein Peer");
         btnOnePeer.setFont(Utilities.getNormalFont());
-        btnOnePeer.addActionListener(e -> {
-            end(1);
-        });
+        btnOnePeer.addActionListener(e -> end(1));
         mainPanel.add(btnOnePeer);
 
         JButton btnManyPeers = new JButton("Viele Peers");
         btnManyPeers.setFont(Utilities.getNormalFont());
-        btnManyPeers.addActionListener(e -> {
-            end(2);
-        });
+        btnManyPeers.addActionListener(e -> end(2));
         mainPanel.add(btnManyPeers);
 
         JButton btnOnePeerWithServer = new JButton("Lokaler Server + ein Peer");
         btnOnePeerWithServer.setFont(Utilities.getNormalFont());
-        btnOnePeerWithServer.addActionListener(e -> {
-            end(3);
-        });
+        btnOnePeerWithServer.addActionListener(e -> end(3));
         mainPanel.add(btnOnePeerWithServer);
 
         JButton btnServerAndManyPeers = new JButton("Lokaler Server + viele Peers");
         btnServerAndManyPeers.setFont(Utilities.getNormalFont());
-        btnServerAndManyPeers.addActionListener(e -> {
-            end(4);
-        });
+        btnServerAndManyPeers.addActionListener(e -> end(4));
         mainPanel.add(btnServerAndManyPeers);
 
         pack();
