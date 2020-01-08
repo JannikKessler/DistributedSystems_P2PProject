@@ -83,8 +83,6 @@ public class StartPanel extends JFrame {
         btnLocalServer.setFont(Utilities.getNormalFont());
         btnLocalServer.addActionListener(e -> {
             end(0);
-            so.alwaysExitOnClose = true;
-            so.startServer();
         });
         mainPanel.add(btnLocalServer);
 
@@ -92,8 +90,6 @@ public class StartPanel extends JFrame {
         btnOnePeer.setFont(Utilities.getNormalFont());
         btnOnePeer.addActionListener(e -> {
             end(1);
-            so.alwaysExitOnClose = true;
-            so.startPeer(Integer.parseInt(JOptionPane.showInputDialog("Bitte Port eingeben")));
         });
         mainPanel.add(btnOnePeer);
 
@@ -101,7 +97,6 @@ public class StartPanel extends JFrame {
         btnManyPeers.setFont(Utilities.getNormalFont());
         btnManyPeers.addActionListener(e -> {
             end(2);
-            so.startManyPeers(false, Integer.parseInt(JOptionPane.showInputDialog("Anzahl Peers:")));
         });
         mainPanel.add(btnManyPeers);
 
@@ -109,7 +104,6 @@ public class StartPanel extends JFrame {
         btnOnePeerWithServer.setFont(Utilities.getNormalFont());
         btnOnePeerWithServer.addActionListener(e -> {
             end(3);
-            so.startServerAndOnePeer();
         });
         mainPanel.add(btnOnePeerWithServer);
 
@@ -117,7 +111,6 @@ public class StartPanel extends JFrame {
         btnServerAndManyPeers.setFont(Utilities.getNormalFont());
         btnServerAndManyPeers.addActionListener(e -> {
             end(4);
-
         });
         mainPanel.add(btnServerAndManyPeers);
 
