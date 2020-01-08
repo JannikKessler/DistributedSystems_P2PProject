@@ -131,7 +131,7 @@ public class StartPanel extends JFrame {
                 switch (option) {
                     case 0:
                         so.alwaysExitOnClose = true;
-                        so.startServer();
+                        so.startLocalServer();
                         break;
                     case 1:
                         so.alwaysExitOnClose = true;

@@ -43,7 +43,7 @@ public class Startoptionen {
     }
 
     public void startServerAndOnePeer() {
-        startServer();
+        startLocalServer();
         startPeer(3334);
     }
 
@@ -52,8 +52,9 @@ public class Startoptionen {
         p.startPeer();
     }
 
-    public void startServer() {
+    public void startLocalServer() {
         try {
+            Utilities.setServerIp("localhost");
             Thread st = new Thread(() -> {
                 Peer server = new Peer();
                 server.startPeer();
