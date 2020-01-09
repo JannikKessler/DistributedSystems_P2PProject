@@ -398,7 +398,7 @@ public class Peer {
     // Ip-Port entnehmen und in Liste speichern.
     private void processIAmFoundMsg(PeerObject p, byte[] msg) {
 
-        int searchId = peerUtilities.byteArrayToChar(msg);
+        int searchId = peerUtilities.byteArrayToInt(msg);
         addPeer(p);
     }
 
@@ -428,7 +428,7 @@ public class Peer {
     private void processMsgMsg(PeerObject p, byte[] msg, InputStream inFromPeer) throws Exception {
 
         addPeer(p);
-        int length = peerUtilities.byteArrayToChar(msg);
+        int length = peerUtilities.byteArrayToInt(msg);
 
         byte[] msgMsg = inFromPeer.readNBytes(length);
         String txt = new String(msgMsg);

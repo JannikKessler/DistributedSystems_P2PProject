@@ -2,6 +2,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.Inet4Address;
 import java.net.InetAddress;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Utilities {
@@ -66,8 +67,10 @@ public class Utilities {
         return result;
     }
 
-    public static char byteArrayToChar(byte[] array) {
-        return (char) (array[1] | array[0] << 8);
+    public static int byteArrayToInt(byte[] bytes) {
+        return
+            ((bytes[0] & 0xFF) << 8) |
+                ((bytes[1] & 0xFF) << 0);
     }
 
     public static boolean isArrayEmty(byte[] array) {

@@ -1,5 +1,4 @@
 import java.util.Arrays;
-import java.util.Date;
 
 public class SearchObject extends PeerObject {
 
@@ -32,7 +31,7 @@ public class SearchObject extends PeerObject {
     }
 
     public int getDestIdAsInt() {
-        return Utilities.byteArrayToChar(destId);
+        return Utilities.byteArrayToInt(destId);
     }
 
     public byte[] getSearchId() {
@@ -40,7 +39,7 @@ public class SearchObject extends PeerObject {
     }
 
     public int getSearchIdAsInt() {
-        return Utilities.byteArrayToChar(searchId);
+        return Utilities.byteArrayToInt(searchId);
     }
 
     public String toString() {
