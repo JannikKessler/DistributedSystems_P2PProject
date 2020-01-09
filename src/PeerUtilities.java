@@ -1,3 +1,5 @@
+import jdk.jfr.StackTrace;
+
 import java.net.ConnectException;
 import java.net.Inet4Address;
 import java.net.InetAddress;
@@ -29,7 +31,10 @@ public class PeerUtilities extends Utilities {
     }
 
     public void errorMessage(Exception e) {
-        printLogInformation(e.toString());
+        printLogInformation(e.getLocalizedMessage());
+        for (StackTraceElement s : e.getStackTrace()) {
+            printLogInformation("" + s);
+        }
     }
 
     public void printByteArrayAsBinaryCode(byte[] array) {

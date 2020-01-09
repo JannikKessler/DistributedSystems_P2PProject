@@ -1,6 +1,8 @@
 import javax.swing.*;
 import javax.swing.text.Position;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
 public class ProgressBar extends JFrame {
 
@@ -14,6 +16,15 @@ public class ProgressBar extends JFrame {
         contentPane.setLayout(new BorderLayout());
         setContentPane(contentPane);
         setAlwaysOnTop(true);
+        setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+
+        this.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                dispose();
+                setProgressBar(100);
+            }
+        });
 
         JLabel lblUeberschirft = new JLabel("Fortschritt", JLabel.CENTER);
         lblUeberschirft.setFont(Utilities.getHeadlineFont());

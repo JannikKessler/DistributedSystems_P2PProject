@@ -8,6 +8,8 @@ import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 @SuppressWarnings("AccessStaticViaInstance")
 public class Peer {
@@ -208,6 +210,7 @@ public class Peer {
 
         } catch (SocketException s) {
             peerUtilities.printLogInformation("Socket geschlossen");
+            peerUtilities.errorMessage(s);
             //SocketExceptions werden abgefangen, da diese nur geworfen werden, wenn der Socket durch exit geschlossen wird
         } catch (Exception e) {
             peerUtilities.errorMessage(e);
@@ -621,7 +624,7 @@ public class Peer {
         peerUtilities.printLogInformation("Leader-Election gestartet");
 
         int numberOfPeers = Variables.getIntValue("max_peers_in_network");
-        int timeout = 20 * numberOfPeers;
+        int timeout = 500 + (20 * numberOfPeers);
 
         SwingWorker<Integer, Integer> sw = new SwingWorker<>() {
             @Override
@@ -635,8 +638,11 @@ public class Peer {
 
                 Thread t = new Thread(() -> {
                     try {
-
+                        boolean iAmLeader = true;
                         for (int i = myPeer.getIdAsInt() + 1; i <= numberOfPeers; i++) {
+
+                            if (!iAmLeader)
+                                return;
 
                             if (showProgressBar)
                                 progressBar.setProgressBar(i * 100 / (2 * numberOfPeers));
@@ -644,42 +650,7 @@ public class Peer {
                             PeerObject pS = getPeerObject(i, timeout);
 
                             if (pS != null) {
-
-                                try {
-                                    PeerObject p = pS.clone();
-                                    sendMsg(p, createAreYouAliveMsg());
-                                    byte[] respose = p.getInFromPeerStream().readNBytes(10);
-                                    p.closeStreams();
-                                    PeerObject p1 = new PeerObject(Arrays.copyOfRange(respose, 2, 10));
-                                    if (p1.getIdAsInt() == i) {
-                                        peerUtilities.printLogInformation("Antwort auf Tag 9 erhalten");
-                                        processIAmAliveMsg(p1);
-
-                                        if (showProgressBar) {
-                                            while (gui.getLeaderId() == -1) {
-                                                int percent = 100 * (progressBar.getWert() + 1) / 99;
-                                                if (percent >= 100) {
-                                                    JOptionPane.showMessageDialog(progressBar, "Leader-Election war nicht erfolgreich", "Fehler", JOptionPane.ERROR_MESSAGE);
-                                                    progressBar.dispose();
-                                                    return;
-                                                } else {
-                                                    progressBar.setProgressBar(percent);
-                                                    Thread.sleep(timeout);
-                                                }
-                                            }
-                                            progressBar.setProgressBar(100);
-                                            Thread.sleep(500);
-                                            progressBar.dispose();
-                                        }
-                                        return;
-                                    }
-                                } catch (Exception e) {
-                                    modifyPeerList(REMOVE, pS);
-                                    //peerUtilities.errorMessage(e);
-                                    //Es kann sein, dass ein PeerObjekt nicht erreichbar ist
-                                    //Diese Fehlermeldung wird hier abgefangen
-                                    continue;
-                                }
+                                iAmLeader = !findLeader(i, pS, showProgressBar, progressBar, timeout);
                             }
                         }
 
@@ -708,6 +679,63 @@ public class Peer {
             }
         };
         sw.execute();
+    }
+
+    private boolean findLeader(int i, PeerObject pS, boolean showProgressBar, ProgressBar progressBar, int timeout) {
+
+        AtomicBoolean isLeaderReacheble = new AtomicBoolean(false);
+
+        try {
+
+            ExecutorService service = Executors.newSingleThreadExecutor();
+            Future<Void> future = service.submit(() -> {
+
+                try {
+                    PeerObject p = pS.clone();
+                    sendMsg(p, createAreYouAliveMsg());
+                    byte[] respose = p.getInFromPeerStream().readNBytes(10);
+                    p.closeStreams();
+                    PeerObject p1 = new PeerObject(Arrays.copyOfRange(respose, 2, 10));
+                    if (p1.getIdAsInt() == i) {
+                        peerUtilities.printLogInformation("Antwort auf Tag 9 erhalten");
+                        processIAmAliveMsg(p1);
+                        isLeaderReacheble.set(true);
+                        if (showProgressBar) {
+                            while (gui.getLeaderId() == -1) {
+                                int percent = 100 * (progressBar.getWert() + 1) / 99;
+                                if (percent >= 100) {
+                                    JOptionPane.showMessageDialog(progressBar, "Leader-Election war nicht erfolgreich", "Fehler", JOptionPane.ERROR_MESSAGE);
+                                    progressBar.dispose();
+                                    return null;
+                                } else {
+                                    progressBar.setProgressBar(percent);
+                                    Thread.sleep(timeout);
+                                }
+                            }
+                            progressBar.setProgressBar(100);
+                            Thread.sleep(500);
+                            progressBar.dispose();
+                        }
+                        return null;
+                    }
+                } catch (Exception e) {
+                    modifyPeerList(REMOVE, pS);
+                    //peerUtilities.errorMessage(e);
+                    //Es kann sein, dass ein PeerObjekt nicht erreichbar ist
+                    //Diese Fehlermeldung wird hier abgefangen
+                }
+                return null;
+            });
+            future.get(timeout, TimeUnit.MILLISECONDS);
+        } catch (TimeoutException e) {
+            peerUtilities.printLogInformation("Timeout bei ID " + i);
+        } catch (InterruptedException e) {
+            peerUtilities.errorMessage(e);
+        } catch (ExecutionException e) {
+            peerUtilities.errorMessage(e);
+        }
+
+        return isLeaderReacheble.get();
     }
 
     private boolean isPeerInMyList(int peerId) {
