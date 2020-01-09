@@ -262,15 +262,18 @@ public class Peer {
         byte[] id = Arrays.copyOfRange(entyResponeMessage, 2, 4);
         myPeer.setId(id);
 
-        for (int i = 4; i < entyResponeMessage.length; i += peerUtilities.getPeerPackLength()) {
+        int maxAnfragen = 1;
+
+        for (int i = 4, j = 0; i < entyResponeMessage.length; i += peerUtilities.getPeerPackLength()) {
 
             byte[] peerPack = Arrays.copyOfRange(entyResponeMessage, i, i + peerUtilities.getPeerPackLength());
 
             if (!peerUtilities.isArrayEmty(peerPack)) {
 
                 PeerObject po = new PeerObject(peerPack);
-                if (sendMsg(po, createNodeRequestMsg()))
-                    addPeer(po);
+                addPeer(po);
+                if (j < maxAnfragen && sendMsg(po, createNodeRequestMsg()))
+                    j++;
                 po.closeStreams();
             }
         }
