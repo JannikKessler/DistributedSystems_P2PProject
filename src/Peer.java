@@ -384,6 +384,7 @@ public class Peer {
         for (PeerObject po : getPeerList()) {
             sendMsg(po, newMsg);
             po.closeStreams();
+            peerUtilities.printLogInformation("SearchID " + incomingSearch.getSearchIdAsInt() + " wurde an ID " + po.getIdAsInt() + " weitergeleitet");
         }
     }
 
