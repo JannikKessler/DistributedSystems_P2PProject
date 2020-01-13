@@ -1,6 +1,8 @@
 import javax.swing.*;
 
 public class TestStart {
+
+    @SuppressWarnings("ConstantConditions")
     public static void main(String[] args) {
 
         try {

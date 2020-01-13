@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 public class AnzeigeThread extends Thread {
 
     private Peer i;
@@ -11,6 +9,7 @@ public class AnzeigeThread extends Thread {
     @Override
     public void run() {
         try {
+            //noinspection InfiniteLoopStatement
             while (true) {
                 i.getPeerUtilities().printPeerList(i, false);
                 Thread.sleep(Utilities.getScreenUpdateTime());

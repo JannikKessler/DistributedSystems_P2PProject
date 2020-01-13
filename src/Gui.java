@@ -8,11 +8,11 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.DefaultCaret;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class Gui extends JFrame {
 
     private JTable peerTable;
     private Peer peer;
-    private boolean isServer;
 
     private JPanel contentPane;
     private JPanel mainPanel;
@@ -47,11 +47,8 @@ public class Gui extends JFrame {
 
     private static String leaderText = "Derzeitiger Leader: ";
 
-    private final String[] COLUMN_NAMES = {"ID", "IP", "Port"};
-
     public Gui(boolean isServer, Point location, Peer peer) {
 
-        this.isServer = isServer;
         setTitle((isServer) ? "Server" : "Peer");
         setSize(Utilities.getGuiSize());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
@@ -161,11 +158,7 @@ public class Gui extends JFrame {
         searchButton.setFont(Utilities.getNormalFont());
         searchButton.setEnabled(false);
 
-        searchButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                searchForID();
-            }
-        });
+        searchButton.addActionListener(e -> searchForID());
 
 
         leaderButton = new JButton("Leader-Election starten");
@@ -173,11 +166,7 @@ public class Gui extends JFrame {
         leaderButton.setFont(Utilities.getNormalFont());
         leaderLabel = new JLabel(leaderText + "-", SwingConstants.CENTER);
         leaderLabel.setFont(Utilities.getNormalFont());
-        leaderButton.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                startLeaderElection();
-            }
-        });
+        leaderButton.addActionListener(e -> startLeaderElection());
 
 
         searchPanel.add(searchField);
@@ -287,15 +276,10 @@ public class Gui extends JFrame {
         msgSendButton.setPreferredSize(new Dimension(100, 30));
         msgSendButton.setEnabled(false);
 
-        msgSendButton.addActionListener(new ActionListener() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                sendMsg();
-            }
-        });
+        msgSendButton.addActionListener(e -> sendMsg());
 
         // SplitLayout
+        //noinspection SuspiciousNameCombination
         splitPanel = new JSplitPane(JSplitPane.VERTICAL_SPLIT, topPanel, bottomPanel);
         splitPanel.setOneTouchExpandable(true);
         splitPanel.setDividerLocation(130);
@@ -321,12 +305,12 @@ public class Gui extends JFrame {
         }
         tableModel.setRowCount(0);
 
-        for (int i = 0; i < peerListe.size(); i++) {
+        for (PeerObject peerObject : peerListe) {
             String[] data = new String[3];
 
-            data[0] = "" + peerListe.get(i).getIdAsInt();
-            data[1] = peerListe.get(i).getIpAsString();
-            data[2] = "" + peerListe.get(i).getPortAsInt();
+            data[0] = "" + peerObject.getIdAsInt();
+            data[1] = peerObject.getIpAsString();
+            data[2] = "" + peerObject.getPortAsInt();
 
             tableModel.addRow(data);
         }
@@ -362,7 +346,7 @@ public class Gui extends JFrame {
 
 
     private void checkSendButton() {
-        if (getFieldID(msgIDField) != -1 && msgField.getText().equals("") == false) {
+        if (getFieldID(msgIDField) != -1 && !msgField.getText().equals("")) {
             msgSendButton.setEnabled(true);
         } else {
             msgSendButton.setEnabled(false);

@@ -115,6 +115,7 @@ public class Startoptionen {
                 }
             }
 
+            //noinspection InfiniteLoopStatement
             while (true) Thread.sleep(Long.MAX_VALUE);
         } catch (Exception e) {
             Utilities.staticErrorMessage(e);

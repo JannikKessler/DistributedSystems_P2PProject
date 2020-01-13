@@ -122,11 +122,9 @@ public class PeerObject {
 
         byte[] msg = new byte[8];
 
-        for (int i = 0; i < ip.length; i++)
-            msg[i] = ip[i];
+        System.arraycopy(ip, 0, msg, 0, ip.length);
 
-        for (int i = 0; i < port.length; i++)
-            msg[i + ip.length] = port[i];
+        System.arraycopy(port, 0, msg, ip.length, port.length);
 
         for (int i = 0; i < id.length; i++)
             msg[i + ip.length + port.length] = id[i];
@@ -134,6 +132,7 @@ public class PeerObject {
         return msg;
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public PeerObject clone() {
         return new PeerObject(ip, port, id);
     }

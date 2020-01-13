@@ -23,20 +23,16 @@ public class Variables {
         variables.put("show_gui", true);
     }
 
+    public static void putObject(String name, Object o) {
+        variables.put(name, o);
+    }
+
     public static String getStringValue(String name) {
         return (String) variables.get(name);
     }
 
     public static int getIntValue(String name) {
         return (int) variables.get(name);
-    }
-
-    public static void putObject(String name, Object o) {
-        variables.put(name, o);
-    }
-
-    public static void putInt(String name, int zahl) {
-        variables.put(name, zahl);
     }
 
     public static Object getObject(String name) {

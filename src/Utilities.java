@@ -2,7 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.net.Inet4Address;
 import java.net.InetAddress;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class Utilities {
@@ -70,9 +69,10 @@ public class Utilities {
     public static int byteArrayToInt(byte[] bytes) {
         return
             ((bytes[0] & 0xFF) << 8) |
-                ((bytes[1] & 0xFF) << 0);
+                ((bytes[1] & 0xFF));
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public static boolean isArrayEmty(byte[] array) {
 
         for (byte b : array) {

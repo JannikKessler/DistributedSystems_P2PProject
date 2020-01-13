@@ -26,6 +26,7 @@ public class SearchObject extends PeerObject {
         this.destId = destId;
     }
 
+    @SuppressWarnings("unused")
     public byte[] getDestId() {
         return destId;
     }

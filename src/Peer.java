@@ -11,7 +11,7 @@ import java.util.Date;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-@SuppressWarnings("AccessStaticViaInstance")
+@SuppressWarnings({"AccessStaticViaInstance", "SynchronizeOnNonFinalField"})
 public class Peer {
 
     // Geteilte Attribute
@@ -151,6 +151,7 @@ public class Peer {
                         int version = msgVersion[0];
 
                         byte[] msgPeerFrom = new byte[8];
+                        //noinspection ResultOfMethodCallIgnored
                         inFromPeer.read(msgPeerFrom, 0, 8);
                         PeerObject peerFrom = new PeerObject(msgPeerFrom);
 
@@ -403,6 +404,7 @@ public class Peer {
     private void processIAmFoundMsg(PeerObject p, byte[] msg) {
 
         int searchId = peerUtilities.byteArrayToInt(msg);
+        peerUtilities.printLogInformation("Antwort auf SearchID " + searchId + " erhalten");
         addPeer(p);
     }
 
@@ -422,9 +424,7 @@ public class Peer {
         msgMsg[10] = msgLength[0];
         msgMsg[11] = msgLength[1];
 
-        for (int i = 0; i < msgText.length; i++) {
-            msgMsg[i + 12] = msgText[i];
-        }
+        System.arraycopy(msgText, 0, msgMsg, 12, msgText.length);
 
         return msgMsg;
     }
@@ -473,9 +473,9 @@ public class Peer {
      * Wenn die Methode benutzt wird, müssen danach die Streams manuell geschlossen
      * werden.
      *
-     * @param po
-     * @param msg
-     * @return
+     * @param po Peer, an dem die Msg gesendet werden soll
+     * @param msg Msg, die versendet werden soll
+     * @return boolean, ob das Versenden erfolgreich gewesen ist
      */
     private boolean sendMsg(PeerObject po, byte[] msg) {
         try {
@@ -487,6 +487,7 @@ public class Peer {
         }
     }
 
+    @SuppressWarnings("deprecation")
     public void exit() {
         try {
             myServer.close();

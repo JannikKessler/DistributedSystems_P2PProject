@@ -1,11 +1,8 @@
-import jdk.jfr.StackTrace;
-
 import java.net.ConnectException;
-import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.Objects;
 
 public class PeerUtilities extends Utilities {
 
@@ -37,12 +34,13 @@ public class PeerUtilities extends Utilities {
         }
     }
 
+    @SuppressWarnings("unused")
     public void printByteArrayAsBinaryCode(byte[] array) {
-        String s = "";
+        StringBuilder s = new StringBuilder();
         for (byte b : array) {
-            s += String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0') + " ";
+            s.append(String.format("%8s", Integer.toBinaryString(b & 0xFF)).replace(' ', '0')).append(" ");
         }
-        printLogInformation(s);
+        printLogInformation(s.toString());
     }
 
     public byte[] getMyIpAsByteArray() {
@@ -65,19 +63,11 @@ public class PeerUtilities extends Utilities {
         printLogInformation("Im Switch wurde ein falscher Parameter übergeben");
     }
 
-    public void fehlermeldungBenutzerdefiniert(String s) {
-        System.err.println(s);
-    }
-
-    public void fehlermeldungVersion() {
-        fehlermeldungBenutzerdefiniert("Falsche Version übergeben");
-    }
-
     public byte[] getServerIpAsByteArray() {
-        return getInetAdressFromString(getServerIp()).getAddress();
+        return Objects.requireNonNull(getInetAdressFromString(getServerIp())).getAddress();
     }
 
-    public void modificationException(Exception e) {
+    public void modificationException(@SuppressWarnings("unused") Exception e) {
         printLogInformation("Modification-Exception");
         //errorMessage(e);
     }
@@ -125,7 +115,7 @@ public class PeerUtilities extends Utilities {
             i.getGui().setLeaderId(id);
     }
 
-    public void connectException(ConnectException c) {
+    public void connectException(@SuppressWarnings("unused") ConnectException c) {
         printLogInformation("Connection refused: connect");
         //errorMessage(c);
     }
