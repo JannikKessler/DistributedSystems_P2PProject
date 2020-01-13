@@ -728,11 +728,10 @@ public class Peer {
                 return null;
             });
             future.get(timeout, TimeUnit.MILLISECONDS);
+
         } catch (TimeoutException e) {
             peerUtilities.printLogInformation("Timeout bei ID " + i);
-        } catch (InterruptedException e) {
-            peerUtilities.errorMessage(e);
-        } catch (ExecutionException e) {
+        } catch (Exception e) {
             peerUtilities.errorMessage(e);
         }
 
