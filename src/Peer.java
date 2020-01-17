@@ -386,7 +386,7 @@ public class Peer {
         byte[] newMsg = peerUtilities.addAll(meta, peerUtilities.addAll(p.getPeerPackage(), msg));
         for (PeerObject po : getPeerList()) {
             sendMsg(po, newMsg, true);
-            peerUtilities.printLogInformation("SearchID " + incomingSearch.getSearchIdAsInt() + " wurde an ID " + po.getIdAsInt() + " weitergeleitet");
+            peerUtilities.printLogInformation("SearchID " + incomingSearch.getSearchIdAsInt() + " von ID " + incomingSearch.getIdAsInt() + " wurde an ID " + po.getIdAsInt() + " weitergeleitet");
         }
     }
 
@@ -608,8 +608,9 @@ public class Peer {
                 return;
             }
 
+            byte[] searchMsg = createNodeSearchMsg(destId);
             for (PeerObject po : getPeerList())
-                sendMsg(po, createNodeSearchMsg(destId), true);
+                sendMsg(po, searchMsg, true);
 
         } catch (Exception e) {
             peerUtilities.modificationException(e);
