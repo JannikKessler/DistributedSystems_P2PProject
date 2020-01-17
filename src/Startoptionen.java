@@ -60,7 +60,7 @@ public class Startoptionen {
                 server.startPeer();
             });
             st.start();
-            Thread.sleep(1000);
+            Thread.sleep(Variables.getIntValue("time_between_peer_starts"));
         } catch (Exception e) {
             Utilities.staticErrorMessage(e);
         }

@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class Peer {
 
     // Geteilte Attribute
-    private PeerObject entryServer;
     private ArrayList<PeerObject> peerList;
     private ArrayList<SearchObject> searchList;
     private int searchIDCounter = 0;
@@ -26,6 +25,9 @@ public class Peer {
     private Point location;
     private ServerSocket myServer;
     private PeerUtilities peerUtilities;
+
+    //Peer Attribute
+    private PeerObject entryServer;
 
     // Server Attribute
     private int idCounter = 0;
@@ -69,24 +71,8 @@ public class Peer {
                 at.start();
             }
 
-            if (!isServer) {
+            if (isServer) {
 
-                entryServer = new PeerObject(peerUtilities.getServerIpAsByteArray(), peerUtilities.getStandardPortAsByteArray(),
-                    new byte[2]);
-
-                peerUtilities.printLogInformation("Client gestartet");
-
-                byte[] entryMsg = createEntryMsg();
-                while (!sendMsg(entryServer, entryMsg)) {
-                    System.err.println("EntryServer konnte nicht erreicht werden\nVersuche es erneut...");
-                    Thread.sleep(1000);
-                }
-
-                byte[] entyResponeMessage = entryServer.getInFromPeerStream().readNBytes(36);
-                processEntryResponeMessage(entryServer, entyResponeMessage);
-                entryServer.closeStreams();
-
-            } else {
                 peerUtilities.printLogInformation("Server gestartet");
 
                 cleanPeerList = new Thread(() -> {
@@ -108,19 +94,37 @@ public class Peer {
                     }
                 });
                 cleanPeerList.start();
+
+                addPeer(myPeer);
+
+            } else {
+
+                entryServer = new PeerObject(peerUtilities.getServerIpAsByteArray(), peerUtilities.getStandardPortAsByteArray(),
+                    new byte[2]);
+
+                peerUtilities.printLogInformation("Client gestartet");
+
+                byte[] entryMsg = createEntryMsg();
+                while (!sendMsg(entryServer, entryMsg, false)) {
+                    System.err.println("EntryServer konnte nicht erreicht werden\nVersuche es erneut...");
+                    Thread.sleep(1000);
+                }
+
+                byte[] entyResponeMessage = entryServer.getInFromPeerStream().readNBytes(36);
+                processEntryResponeMessage(entryServer, entyResponeMessage);
+                entryServer.closeStreams();
             }
 
             keepAlive = new Thread(() -> {
                 while (true) {
                     try {
+                        Thread.sleep(Variables.getIntValue("time_send_keep_alive"));
                         if (isServer) {
                             addPeer(myPeer);
                         } else {
                             byte[] msg = createIAmAliveMsg();
-                            sendMsg(entryServer, msg);
-                            entryServer.closeStreams();
+                            sendMsg(entryServer, msg, true);
                         }
-                        Thread.sleep(Variables.getIntValue("time_send_keep_alive"));
                     } catch (Exception e) {
                         peerUtilities.errorMessage(e);
                     }
@@ -279,9 +283,8 @@ public class Peer {
 
                 PeerObject po = new PeerObject(peerPack);
                 addPeer(po);
-                if (j < maxAnfragen && sendMsg(po, createNodeRequestMsg()))
+                if (j < maxAnfragen && sendMsg(po, createNodeRequestMsg(), true))
                     j++;
-                po.closeStreams();
             }
         }
     }
@@ -377,8 +380,7 @@ public class Peer {
         // Fall 1 Ich bin der gesuchte -> rückantwort
         if (incomingSearch.getDestIdAsInt() == myPeer.getIdAsInt()) {
             peerUtilities.printLogInformation("Ich bin der gesuchte Peer");
-            sendMsg(incomingSearch, createIAmFoundMsg(incomingSearch.getSearchId()));
-            incomingSearch.closeStreams();
+            sendMsg(incomingSearch, createIAmFoundMsg(incomingSearch.getSearchId()), true);
             return;
         }
 
@@ -386,8 +388,7 @@ public class Peer {
         byte[] meta = {(byte) 6, (byte) 1};
         byte[] newMsg = peerUtilities.addAll(meta, peerUtilities.addAll(p.getPeerPackage(), msg));
         for (PeerObject po : getPeerList()) {
-            sendMsg(po, newMsg);
-            po.closeStreams();
+            sendMsg(po, newMsg, true);
             peerUtilities.printLogInformation("SearchID " + incomingSearch.getSearchIdAsInt() + " wurde an ID " + po.getIdAsInt() + " weitergeleitet");
         }
     }
@@ -480,9 +481,11 @@ public class Peer {
      * @param msg Msg, die versendet werden soll
      * @return boolean, ob das Versenden erfolgreich gewesen ist
      */
-    private boolean sendMsg(PeerObject po, byte[] msg) {
+    private boolean sendMsg(PeerObject po, byte[] msg, boolean closeStreams) {
         try {
             po.getOutToPeerStream().write(msg);
+            if (closeStreams)
+                po.closeStreams();
             return true;
         } catch (Exception e) {
             // peerUtilities.errorMessage(e);
@@ -605,7 +608,9 @@ public class Peer {
     }
 
     public void startSearch(int destId) {
+
         try {
+
             if (isPeerInMyList(destId))
                 return;
 
@@ -614,10 +619,9 @@ public class Peer {
                 return;
             }
 
-            for (PeerObject po : getPeerList()) {
-                sendMsg(po, createNodeSearchMsg(destId));
-                po.closeStreams();
-            }
+            for (PeerObject po : getPeerList())
+                sendMsg(po, createNodeSearchMsg(destId), true);
+
         } catch (Exception e) {
             peerUtilities.modificationException(e);
         }
@@ -643,31 +647,32 @@ public class Peer {
 
                 Thread t = new Thread(() -> {
                     try {
-                        boolean iAmLeader = true;
-                        for (int i = myPeer.getIdAsInt() + 1; i <= numberOfPeers; i++) {
+                        boolean isThereAHigherId = false;
 
-                            if (!iAmLeader)
+                        for (int id = myPeer.getIdAsInt() + 1; id <= numberOfPeers; id++) {
+
+                            if (isThereAHigherId)
                                 return;
 
                             if (showProgressBar)
-                                progressBar.setProgressBar(i * 100 / (2 * numberOfPeers));
+                                progressBar.setProgressBar(id * 100 / (2 * numberOfPeers));
 
-                            PeerObject pS = getPeerObject(i, timeout);
+                            PeerObject pS = getPeerObject(id, timeout);
 
-                            if (pS != null) {
-                                iAmLeader = !findLeader(i, pS, showProgressBar, progressBar, timeout);
-                            }
+                            if (pS != null)
+                                isThereAHigherId = isPeerOnline(pS, showProgressBar, progressBar, timeout);
                         }
 
                         peerUtilities.printLogInformation("Ich bin Leader");
                         peerUtilities.setLeader(myPeer.getIdAsInt());
 
                         for (int i = myPeer.getIdAsInt() - 1; i >= 0; i--) {
+
                             PeerObject p = getPeerObject(i, timeout);
-                            if (p != null) {
-                                sendMsg(p, createIAmLeaderMsg());
-                                p.closeStreams();
-                            }
+
+                            if (p != null)
+                                sendMsg(p, createIAmLeaderMsg(), true);
+
                             if (showProgressBar)
                                 progressBar.setProgressBar(100 - (i * 100 / (2 * numberOfPeers)));
                         }
@@ -686,7 +691,7 @@ public class Peer {
         sw.execute();
     }
 
-    private boolean findLeader(int i, PeerObject pS, boolean showProgressBar, ProgressBar progressBar, int timeout) {
+    private boolean isPeerOnline(PeerObject pS, boolean showProgressBar, ProgressBar progressBar, int timeout) {
 
         AtomicBoolean isLeaderReacheble = new AtomicBoolean(false);
 
@@ -697,11 +702,11 @@ public class Peer {
 
                 try {
                     PeerObject p = pS.clone();
-                    sendMsg(p, createAreYouAliveMsg());
+                    sendMsg(p, createAreYouAliveMsg(), false);
                     byte[] respose = p.getInFromPeerStream().readNBytes(10);
                     p.closeStreams();
                     PeerObject p1 = new PeerObject(Arrays.copyOfRange(respose, 2, 10));
-                    if (p1.getIdAsInt() == i) {
+                    if (p1.getIdAsInt() == pS.getIdAsInt()) {
                         peerUtilities.printLogInformation("Antwort auf Tag 9 erhalten");
                         processIAmAliveMsg(p1);
                         isLeaderReacheble.set(true);
@@ -734,7 +739,7 @@ public class Peer {
             future.get(timeout, TimeUnit.MILLISECONDS);
 
         } catch (TimeoutException e) {
-            peerUtilities.printLogInformation("Timeout bei ID " + i);
+            peerUtilities.printLogInformation("Timeout bei ID " + pS.getIdAsInt());
         } catch (Exception e) {
             peerUtilities.errorMessage(e);
         }
@@ -772,9 +777,7 @@ public class Peer {
                 }
             }
 
-            PeerObject po = new PeerObject(ip, port, id);
-            sendMsg(po, createMsgMsg(txt));
-            po.closeStreams();
+            sendMsg(new PeerObject(ip, port, id), createMsgMsg(txt), true);
         });
         t.start();
     }
