@@ -629,7 +629,7 @@ public class Peer {
         peerUtilities.printLogInformation("Leader-Election gestartet");
 
         int numberOfPeers = Variables.getIntValue("max_peers_in_network");
-        int timeout = 500 + (20 * numberOfPeers);
+        int timeout = 1000 + (50 * numberOfPeers);
 
         SwingWorker<Integer, Integer> sw = new SwingWorker<>() {
             @Override
@@ -751,7 +751,7 @@ public class Peer {
 
         Thread t = new Thread(() -> {
             peerUtilities.printLogInformation("[An ID " + idInput + "] " + txt);
-            int timeout = 2000;
+            int timeout = 3000;
             PeerObject p = getPeerObject(idInput, timeout);
 
             if (p == null) {
