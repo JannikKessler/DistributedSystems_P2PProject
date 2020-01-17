@@ -10,7 +10,7 @@ public class Startoptionen {
     private Startoptionen() {
 
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            //UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             UIManager.put("OptionPane.cancelButtonText", "Abbrechen");
             UIManager.put("OptionPane.noButtonText", "Nein");
             UIManager.put("OptionPane.okButtonText", "Ok");
