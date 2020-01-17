@@ -47,9 +47,9 @@ public class Gui extends JFrame {
 
     private static String leaderText = "Derzeitiger Leader: ";
 
-    public Gui(boolean isServer, Point location, Peer peer) {
+    public Gui(Peer peer) {
 
-        setTitle((isServer) ? "Server" : "Peer");
+        setTitle((peer.isServer) ? "Server" : "Peer");
         setSize(Utilities.getGuiSize());
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 
@@ -288,10 +288,12 @@ public class Gui extends JFrame {
         splitPanel.setBorder(null);
         mainPanel.add(splitPanel, BorderLayout.CENTER);
 
-        if (location == null)
+        Point p = peer.getLocation();
+        if (p == null)
             setLocationRelativeTo(null);
         else
-            setLocation(location);
+            setLocation(p);
+
         setVisible(true);
     }
 
