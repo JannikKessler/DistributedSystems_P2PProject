@@ -151,8 +151,11 @@ public class Peer {
                         int version = msgVersion[0];
 
                         byte[] msgPeerFrom = new byte[8];
-                        //noinspection ResultOfMethodCallIgnored
-                        inFromPeer.read(msgPeerFrom, 0, 8);
+                        inFromPeer.readNBytes(msgPeerFrom, 0, 6);
+
+                        if (tag != 1)
+                            inFromPeer.readNBytes(msgPeerFrom, 6, 2);
+
                         PeerObject peerFrom = new PeerObject(msgPeerFrom);
 
                         switch (tag) {
@@ -473,7 +476,7 @@ public class Peer {
      * Wenn die Methode benutzt wird, müssen danach die Streams manuell geschlossen
      * werden.
      *
-     * @param po Peer, an dem die Msg gesendet werden soll
+     * @param po  Peer, an dem die Msg gesendet werden soll
      * @param msg Msg, die versendet werden soll
      * @return boolean, ob das Versenden erfolgreich gewesen ist
      */
