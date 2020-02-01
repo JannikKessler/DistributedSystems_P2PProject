@@ -364,6 +364,7 @@ public class Gui extends JFrame {
     }
 
     private void sendMsg() {
+
         int id = getFieldID(msgIDField);
         String msg = msgField.getText();
 
@@ -389,7 +390,12 @@ public class Gui extends JFrame {
     }
 
     public int getLeaderId() {
-        return Integer.parseInt(leaderLabel.getText().replace(leaderText, ""));
+        try {
+            return Integer.parseInt(leaderLabel.getText().replace(leaderText, ""));
+        } catch (Exception e) {
+            //Returnwert liefert Fehler
+            return -1;
+        }
     }
 
     public void setHeadline(String s, String ipAsString, int portAsInt, int idAsInt) {

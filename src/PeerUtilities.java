@@ -28,10 +28,13 @@ public class PeerUtilities extends Utilities {
     }
 
     public void errorMessage(Exception e) {
-        printLogInformation(e.getLocalizedMessage());
+        printOnGuiLogPanel(e.getLocalizedMessage());
         for (StackTraceElement s : e.getStackTrace()) {
-            printLogInformation("" + s);
+            printOnGuiLogPanel("" + s);
         }
+
+        printOnConsole("Folgende Fehlermeldung (" + e.getLocalizedMessage() + ") kommt von PeerId " + i.getMyPeer().getIdAsInt());
+        e.printStackTrace();
     }
 
     @SuppressWarnings("unused")

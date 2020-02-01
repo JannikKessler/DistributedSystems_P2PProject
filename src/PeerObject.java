@@ -45,7 +45,7 @@ public class PeerObject {
 
     private void createSocket() throws Exception {
 
-        socket = new Socket(Utilities.getInetAdressFromByteArray(ip), Utilities.byteArrayToInt(port));
+        socket = new Socket(Utilities.getInetAdressFromByteArray(ip), Utilities.byteArrayToCharToInt(port));
     }
 
     private boolean isSocketClosed() {
@@ -80,7 +80,7 @@ public class PeerObject {
     }
 
     public int getPortAsInt() {
-        return Utilities.byteArrayToInt(port);
+        return Utilities.byteArrayToCharToInt(port);
     }
 
     public String getIpAsString() {
@@ -111,7 +111,7 @@ public class PeerObject {
     }
 
     public int getIdAsInt() {
-        return Utilities.byteArrayToInt(id);
+        return Utilities.byteArrayToCharToInt(id);
     }
 
     public String toString() {

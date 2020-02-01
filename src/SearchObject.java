@@ -32,7 +32,7 @@ public class SearchObject extends PeerObject {
     }
 
     public int getDestIdAsInt() {
-        return Utilities.byteArrayToInt(destId);
+        return Utilities.byteArrayToCharToInt(destId);
     }
 
     public byte[] getSearchId() {
@@ -40,7 +40,7 @@ public class SearchObject extends PeerObject {
     }
 
     public int getSearchIdAsInt() {
-        return Utilities.byteArrayToInt(searchId);
+        return Utilities.byteArrayToCharToInt(searchId);
     }
 
     public String toString() {

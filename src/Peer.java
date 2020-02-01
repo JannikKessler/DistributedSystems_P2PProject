@@ -17,13 +17,13 @@ public class Peer {
     // Geteilte Attribute
     private ArrayList<PeerObject> peerList;
     private ArrayList<SearchObject> searchList;
+    private ArrayList<TimeObject> offsetList;
     private int searchIDCounter = 0;
     private Gui gui;
     private Thread keepAlive;
     public boolean isServer = false;
     private PeerObject myPeer;
-    private TimeObject myTime;
-    private TimeObject myTimeOffset;
+    private long timeOffset;
     private Point location;
     private ServerSocket myServer;
     private PeerUtilities peerUtilities;
@@ -35,7 +35,6 @@ public class Peer {
     // Server Attribute
     private int idCounter = 0;
     private Thread cleanPeerList;
-    private ArrayList<TimeObject> timeList;
 
     // FINALs
     public static final int INSERT = 1;
@@ -62,6 +61,8 @@ public class Peer {
         isServer = isServer();
         this.location = location;
         this.timeoutInMs = 1000 + (50 * Variables.getIntValue("max_peers_in_network"));
+        timeOffset = Utilities.getRandomNumberInRange(-300000, 300000);
+        offsetList = new ArrayList<>();
     }
 
     public void startPeer() {
@@ -198,16 +199,16 @@ public class Peer {
                                 processIAmLeaderMsg(peerFrom);
                                 break;
                             case 11:
-                            	processTellMeYourTimeMsg(peerFrom);
-                            	break;
+                                processTellMeYourTimeMsg(peerFrom);
+                                break;
                             case 12:
-                            	byte[] msg12 = inFromPeer.readNBytes(8);
-                            	processHereIsMyTimeMsg(peerFrom, msg12);
-                            	break;
+                                byte[] msg12 = inFromPeer.readNBytes(8);
+                                processHereIsMyTimeMsg(peerFrom, msg12);
+                                break;
                             case 13:
-                            	byte[] msg13 = inFromPeer.readNBytes(8);
-                            	processHereIsYourNewTimeMsg(peerFrom, msg13);
-                            	break;
+                                byte[] msg13 = inFromPeer.readNBytes(8);
+                                processHereIsYourNewTimeMsg(peerFrom, msg13);
+                                break;
                             default:
                                 peerUtilities.switchDefault();
                         }
@@ -369,7 +370,9 @@ public class Peer {
         nodeSearchMsg[12] = destID[0];
         nodeSearchMsg[13] = destID[1];
 
-        searchList.add(new SearchObject(myPeer.getIp(), myPeer.getPort(), myPeer.getId(), searchID, destID));
+        synchronized (searchList) {
+            searchList.add(new SearchObject(myPeer.getIp(), myPeer.getPort(), myPeer.getId(), searchID, destID));
+        }
 
         return nodeSearchMsg;
     }
@@ -378,15 +381,17 @@ public class Peer {
 
         SearchObject incomingSearch = new SearchObject(p, msg);
 
-        for (SearchObject so : searchList) {
-            // Ich habe die Msg schon einmal empfangen.
-            if (so.getIdAsInt() == incomingSearch.getIdAsInt() && incomingSearch.getSearchIdAsInt() == so.getSearchIdAsInt()) {
-                //peerUtilities.println(gui, myPeer.getPortAsInt() + " hat den Search schonmal erhalten.");
-                return;
-            }
-        }
+        synchronized (searchList) {
 
-        searchList.add(incomingSearch);
+            for (SearchObject so : searchList) {
+                // Ich habe die Msg schon einmal empfangen.
+                if (so.getIdAsInt() == incomingSearch.getIdAsInt() && incomingSearch.getSearchIdAsInt() == so.getSearchIdAsInt()) {
+                    //peerUtilities.println(gui, myPeer.getPortAsInt() + " hat den Search schonmal erhalten.");
+                    return;
+                }
+            }
+            searchList.add(incomingSearch);
+        }
 
         // Fall 1 Ich bin der gesuchte -> rückantwort
         if (incomingSearch.getDestIdAsInt() == myPeer.getIdAsInt()) {
@@ -402,6 +407,7 @@ public class Peer {
             sendMsg(po, newMsg, true);
             peerUtilities.printLogInformation("SearchID " + incomingSearch.getSearchIdAsInt() + " von ID " + incomingSearch.getIdAsInt() + " wurde an ID " + po.getIdAsInt() + " weitergeleitet");
         }
+
     }
 
     private byte[] createIAmFoundMsg(byte[] searchId) {
@@ -419,7 +425,7 @@ public class Peer {
     // Ip-Port entnehmen und in Liste speichern.
     private void processIAmFoundMsg(PeerObject p, byte[] msg) {
 
-        int searchId = peerUtilities.byteArrayToInt(msg);
+        int searchId = peerUtilities.byteArrayToCharToInt(msg);
         peerUtilities.printLogInformation("Antwort auf SearchID " + searchId + " erhalten");
         addPeer(p);
     }
@@ -448,7 +454,7 @@ public class Peer {
     private void processMsgMsg(PeerObject p, byte[] msg, InputStream inFromPeer) throws Exception {
 
         addPeer(p);
-        int length = peerUtilities.byteArrayToInt(msg);
+        int length = peerUtilities.byteArrayToCharToInt(msg);
 
         byte[] msgMsg = inFromPeer.readNBytes(length);
         String txt = new String(msgMsg);
@@ -480,62 +486,48 @@ public class Peer {
     private void processIAmLeaderMsg(PeerObject p) {
         peerUtilities.setLeader(p.getIdAsInt());
     }
-    
+
     private byte[] createTellMeYourTimeMsg() {
-    	byte[] tellMe = new byte[10];
-    	tellMe[0] = 11;//Tag
-    	tellMe[1] = 1;//Version
-    	packPeerPackage(tellMe, 2, myPeer);
-    	return tellMe;
+        byte[] tellMe = new byte[10];
+        tellMe[0] = 11;//Tag
+        tellMe[1] = 1;//Version
+        packPeerPackage(tellMe, 2, myPeer);
+        return tellMe;
     }
-    
+
     private void processTellMeYourTimeMsg(PeerObject p) {
-    	//HereIsMyTime aufrufen und zum Leader schicken.
-    	addPeer(p);
-    	byte[] ITellYou = new byte[18];
-    	ITellYou = createHereIsMyTimeMsg();
-    	sendMsg(p, ITellYou, true);
+        //HereIsMyTime aufrufen und zum Leader schicken.
+        addPeer(p);
+        sendMsg(p, createHereIsMyTimeMsg(), true);
     }
-    
-    private void appendTime(byte[] msg, int offset, TimeObject to) {
-    	byte[] timeToAppend = to.getTime();
-    	int cnt = 0;
-    	for (int i = offset; i < msg.length; i++) {
-    		msg[i] = timeToAppend[cnt++];
-    	}
-    }
-    
+
     private byte[] createHereIsMyTimeMsg() {
-    	byte[] myTime = new byte[18];
-    	myTime[0] = 12;//Tag
-    	myTime[1] = 1;//Version
-    	packPeerPackage(myTime, 2, myPeer);
-    	this.myTime = new TimeObject(myPeer.getIp(), myPeer.getPort(), myPeer.getId());
-    	appendTime(myTime, 10, this.myTime);
-    	
-    	return myTime;
+        byte[] myTime = new byte[18];
+        myTime[0] = 12;//Tag
+        myTime[1] = 1;//Version
+        packPeerPackage(myTime, 2, myPeer);
+        appendTime(myTime, 10, Utilities.longToByteArray(new Date().getTime() + timeOffset));
+        return myTime;
     }
-    
+
     private void processHereIsMyTimeMsg(PeerObject p, byte[] peerTime) {
-    	TimeObject peerTimeObject = new TimeObject(p.getIp(), p.getPort(), p.getId(), peerTime);
-    	timeList.add(peerTimeObject);
+        synchronized (offsetList) {
+            offsetList.add(new TimeObject(p, Utilities.byteArrayToLong(peerTime) - new Date().getTime()));
+        }
     }
-    
-    private byte[] createHereIsYourNewTimeMsg(TimeObject to) {
-    	byte[] newTime = new byte[18];
-    	newTime[0] = 13;//Tag
-    	newTime[1] = 1;//Version
-    	packPeerPackage(newTime, 2, myPeer);
-    	appendTime(newTime, 10, to);
-    	
-    	return newTime;
+
+    private byte[] createHereIsYourNewTimeMsg(byte[] time) {
+        byte[] newTime = new byte[18];
+        newTime[0] = 13;//Tag
+        newTime[1] = 1;//Version
+        packPeerPackage(newTime, 2, myPeer);
+        appendTime(newTime, 10, time);
+        return newTime;
     }
-    
+
     private void processHereIsYourNewTimeMsg(PeerObject p, byte[] leaderTime) {
-    	TimeObject leaderTimeObject = new TimeObject(p.getIp(), p.getPort(), p.getId(), leaderTime);
-    	
-    	long offset = leaderTimeObject.getTimeAsLong() - myTime.getTimeAsLong();
-    	myTimeOffset = new TimeObject(myPeer.getIp(), myPeer.getPort(), myPeer.getId(), leaderTimeObject.longToByteArr(offset));
+        addPeer(p);
+        timeOffset = Utilities.byteArrayToLong(leaderTime) - new Date().getTime();
     }
 
     private boolean isServer() {
@@ -564,13 +556,16 @@ public class Peer {
         } catch (Exception e) {
             peerUtilities.errorMessage(e);
         }
+    }
 
+    private void appendTime(byte[] msg, int offset, byte[] time) {
+        for (int i = 0; i < time.length; i++)
+            msg[offset + i] = time[i];
     }
 
     public void packPeerPackage(byte[] destination, int offset, PeerObject p) {
 
         try {
-
             int numberOfBytes = (destination.length > offset + 6) ? 8 : 6;
             byte[] peerPacket = p.getPeerPackage();
 
@@ -584,14 +579,13 @@ public class Peer {
 
     public void deletePeersFromPeerList(ArrayList<PeerObject> delete) {
 
-        for (PeerObject p : delete) {
+        for (PeerObject p : delete)
             modifyPeerList(REMOVE, p);
-        }
     }
 
     public void modifyPeerList(int action, PeerObject insertORemove) {
 
-        synchronized (myPeer) {
+        synchronized (peerList) {
             switch (action) {
                 case INSERT:
                     peerList.add(0, insertORemove);
@@ -816,36 +810,88 @@ public class Peer {
 
         Thread t = new Thread(() -> {
 
-            peerUtilities.printLogInformation("[An ID " + idInput + "] " + txt);
+            if (txt.equals("timesyn")) {
+                startTimeSyn();
+            } else if (txt.equals("offset")) {
+                peerUtilities.printLogInformation("Mein Time-Offset: " + timeOffset);
+            } else {
 
-            PeerObject p = getPeerObject(idInput);
+                peerUtilities.printLogInformation("[An ID " + idInput + "] " + txt);
 
-            if (p == null) {
-                peerUtilities.printMsg("ID: " + idInput + " konnte nicht gefunden werden.");
-                return;
-            }
+                PeerObject p = getPeerObject(idInput);
 
-            peerUtilities.printMsg("[An ID " + idInput + "] " + txt);
-
-            byte[] ip = null;
-            byte[] port = null;
-            byte[] id = null;
-
-            for (PeerObject peerObject : getPeerList()) {
-                if (peerObject.getIdAsInt() == idInput) {
-                    ip = peerObject.getIp();
-                    port = peerObject.getPort();
-                    id = peerObject.getId();
+                if (p == null) {
+                    peerUtilities.printMsg("ID: " + idInput + " konnte nicht gefunden werden.");
+                    return;
                 }
-            }
 
-            sendMsg(new PeerObject(ip, port, id), createMsgMsg(txt), true);
+                peerUtilities.printMsg("[An ID " + idInput + "] " + txt);
+
+                byte[] ip = null;
+                byte[] port = null;
+                byte[] id = null;
+
+                for (PeerObject peerObject : getPeerList()) {
+                    if (peerObject.getIdAsInt() == idInput) {
+                        ip = peerObject.getIp();
+                        port = peerObject.getPort();
+                        id = peerObject.getId();
+                    }
+                }
+
+                sendMsg(new PeerObject(ip, port, id), createMsgMsg(txt), true);
+            }
         });
         t.start();
     }
 
+    public void startTimeSyn() {
+
+        if (myPeer.getIdAsInt() == gui.getLeaderId()) {
+
+            synchronized (offsetList) {
+                offsetList.clear();
+            }
+
+            Thread t = new Thread(() -> {
+                try {
+
+                    for (int i = myPeer.getIdAsInt(); i >= 0; i--) {
+                        PeerObject p = getPeerObject(i);
+                        if (p != null)
+                            sendMsg(p, createTellMeYourTimeMsg(), true);
+                    }
+
+                    Thread.sleep(5000);
+
+                    synchronized (offsetList) {
+
+                        long middleOffset = 0;
+
+                        if (offsetList.size() > 0) {
+                            for (TimeObject to : offsetList)
+                                middleOffset = to.getTimeAsLong();
+                            middleOffset = middleOffset / offsetList.size();
+                        }
+
+                        byte[] yourNewTime = createHereIsYourNewTimeMsg(Utilities.longToByteArray(new Date().getTime() + middleOffset));
+                        peerUtilities.printLogInformation("berechnet: " + middleOffset);
+
+                        for (TimeObject to : offsetList)
+                            sendMsg(to, yourNewTime, true);
+                    }
+
+                } catch (Exception e) {
+                    peerUtilities.errorMessage(e);
+                }
+            });
+            t.start();
+        } else
+            peerUtilities.errorMessage(new Exception("Ich bin kein Leader und deswegen nicht dazu berechtigt, eine TimeSyn zu starten"));
+    }
+
     public ArrayList<PeerObject> getPeerList() {
-        synchronized (myPeer) {
+        synchronized (peerList) {
             return new ArrayList<>(peerList);
         }
     }

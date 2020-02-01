@@ -3,6 +3,7 @@ import java.awt.*;
 import java.net.Inet4Address;
 import java.net.InetAddress;
 import java.util.Arrays;
+import java.util.Random;
 
 public class Utilities {
 
@@ -41,6 +42,15 @@ public class Utilities {
         return null;
     }
 
+    public static int getRandomNumberInRange(int min, int max) {
+
+        if (min >= max) {
+            staticErrorMessage(new IllegalArgumentException("max must be greater than min"));
+        }
+
+        Random r = new Random();
+        return r.nextInt((max - min) + 1) + min;
+    }
 
     public static void staticErrorMessage(Exception e) {
 
@@ -58,6 +68,28 @@ public class Utilities {
         return null;
     }
 
+    public static byte[] longToByteArray(long msec) {
+        byte[] tm = new byte[8];
+        for (int i = 0, cnt = 56; i < tm.length; i++, cnt -= 8)
+            tm[i] = (byte) (msec >> cnt);
+        return tm;
+    }
+
+    public static long byteArrayToLong(byte[] bytes) {
+
+        if (bytes.length == 8) {
+            long result = 0;
+            for (int i = 0; i < 8; i++) {
+                result <<= 8;
+                result |= (bytes[i] & 0xFF);
+            }
+            return result;
+        } else {
+            staticErrorMessage(new Exception("Es wurde keine ByteArray übergeben, der in einen Long umgewandelt werden könnte"));
+            return -1;
+        }
+    }
+
     public static byte[] charToByteArray(char i) {
 
         byte[] result = new byte[2];
@@ -66,7 +98,7 @@ public class Utilities {
         return result;
     }
 
-    public static int byteArrayToInt(byte[] bytes) {
+    public static int byteArrayToCharToInt(byte[] bytes) {
         return
             ((bytes[0] & 0xFF) << 8) |
                 ((bytes[1] & 0xFF));
