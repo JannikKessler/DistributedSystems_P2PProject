@@ -22,6 +22,8 @@ public class Peer {
     private Thread keepAlive;
     public boolean isServer = false;
     private PeerObject myPeer;
+    private TimeObject myTime;
+    private TimeObject myTimeOffset;
     private Point location;
     private ServerSocket myServer;
     private PeerUtilities peerUtilities;
@@ -33,6 +35,7 @@ public class Peer {
     // Server Attribute
     private int idCounter = 0;
     private Thread cleanPeerList;
+    private ArrayList<TimeObject> timeList;
 
     // FINALs
     public static final int INSERT = 1;
@@ -194,6 +197,17 @@ public class Peer {
                             case 10:
                                 processIAmLeaderMsg(peerFrom);
                                 break;
+                            case 11:
+                            	processTellMeYourTimeMsg(peerFrom);
+                            	break;
+                            case 12:
+                            	byte[] msg12 = inFromPeer.readNBytes(8);
+                            	processHereIsMyTimeMsg(peerFrom, msg12);
+                            	break;
+                            case 13:
+                            	byte[] msg13 = inFromPeer.readNBytes(8);
+                            	processHereIsYourNewTimeMsg(peerFrom, msg13);
+                            	break;
                             default:
                                 peerUtilities.switchDefault();
                         }
@@ -465,6 +479,63 @@ public class Peer {
 
     private void processIAmLeaderMsg(PeerObject p) {
         peerUtilities.setLeader(p.getIdAsInt());
+    }
+    
+    private byte[] createTellMeYourTimeMsg() {
+    	byte[] tellMe = new byte[10];
+    	tellMe[0] = 11;//Tag
+    	tellMe[1] = 1;//Version
+    	packPeerPackage(tellMe, 2, myPeer);
+    	return tellMe;
+    }
+    
+    private void processTellMeYourTimeMsg(PeerObject p) {
+    	//HereIsMyTime aufrufen und zum Leader schicken.
+    	addPeer(p);
+    	byte[] ITellYou = new byte[18];
+    	ITellYou = createHereIsMyTimeMsg();
+    	sendMsg(p, ITellYou, true);
+    }
+    
+    private void appendTime(byte[] msg, int offset, TimeObject to) {
+    	byte[] timeToAppend = to.getTime();
+    	int cnt = 0;
+    	for (int i = offset; i < msg.length; i++) {
+    		msg[i] = timeToAppend[cnt++];
+    	}
+    }
+    
+    private byte[] createHereIsMyTimeMsg() {
+    	byte[] myTime = new byte[18];
+    	myTime[0] = 12;//Tag
+    	myTime[1] = 1;//Version
+    	packPeerPackage(myTime, 2, myPeer);
+    	this.myTime = new TimeObject(myPeer.getIp(), myPeer.getPort(), myPeer.getId());
+    	appendTime(myTime, 10, this.myTime);
+    	
+    	return myTime;
+    }
+    
+    private void processHereIsMyTimeMsg(PeerObject p, byte[] peerTime) {
+    	TimeObject peerTimeObject = new TimeObject(p.getIp(), p.getPort(), p.getId(), peerTime);
+    	timeList.add(peerTimeObject);
+    }
+    
+    private byte[] createHereIsYourNewTimeMsg(TimeObject to) {
+    	byte[] newTime = new byte[18];
+    	newTime[0] = 13;//Tag
+    	newTime[1] = 1;//Version
+    	packPeerPackage(newTime, 2, myPeer);
+    	appendTime(newTime, 10, to);
+    	
+    	return newTime;
+    }
+    
+    private void processHereIsYourNewTimeMsg(PeerObject p, byte[] leaderTime) {
+    	TimeObject leaderTimeObject = new TimeObject(p.getIp(), p.getPort(), p.getId(), leaderTime);
+    	
+    	long offset = leaderTimeObject.getTimeAsLong() - myTime.getTimeAsLong();
+    	myTimeOffset = new TimeObject(myPeer.getIp(), myPeer.getPort(), myPeer.getId(), leaderTimeObject.longToByteArr(offset));
     }
 
     private boolean isServer() {
