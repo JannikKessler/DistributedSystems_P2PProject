@@ -25,9 +25,9 @@ public class ProgressBar extends JFrame {
             }
         });
 
-        JLabel lblUeberschirft = new JLabel("Fortschritt", JLabel.CENTER);
-        lblUeberschirft.setFont(Utilities.getHeadlineFont());
-        contentPane.add(lblUeberschirft, BorderLayout.NORTH);
+        JLabel lblHeadline = new JLabel("Fortschritt", JLabel.CENTER);
+        lblHeadline.setFont(Utilities.getHeadlineFont());
+        contentPane.add(lblHeadline, BorderLayout.NORTH);
 
         progressBar = new JProgressBar();
         progressBar.setFont(Utilities.getNormalFont());
@@ -41,7 +41,7 @@ public class ProgressBar extends JFrame {
         setLocationRelativeTo(parent);
     }
 
-    public int getWert() {
+    public int getValue() {
         return progressBar.getValue();
     }
 

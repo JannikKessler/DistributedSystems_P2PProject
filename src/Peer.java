@@ -17,7 +17,7 @@ public class Peer {
     // Geteilte Attribute
     private ArrayList<PeerObject> peerList;
     private ArrayList<SearchObject> searchList;
-    private ArrayList<TimeObject> offsetList;
+    private ArrayList<TimeOffsetObject> offsetList;
     private int searchIDCounter = 0;
     private Gui gui;
     private Thread keepAlive;
@@ -228,7 +228,7 @@ public class Peer {
 
         } catch (SocketException s) {
             peerUtilities.printLogInformation("Socket geschlossen");
-            peerUtilities.errorMessage(s);
+            //peerUtilities.errorMessage(s);
             //SocketExceptions werden abgefangen, da diese nur geworfen werden, wenn der Socket durch exit geschlossen wird
         } catch (Exception e) {
             peerUtilities.errorMessage(e);
@@ -512,7 +512,7 @@ public class Peer {
 
     private void processHereIsMyTimeMsg(PeerObject p, byte[] peerTime) {
         synchronized (offsetList) {
-            offsetList.add(new TimeObject(p, Utilities.byteArrayToLong(peerTime) - new Date().getTime()));
+            offsetList.add(new TimeOffsetObject(p, Utilities.byteArrayToLong(peerTime) - new Date().getTime()));
         }
     }
 
@@ -558,9 +558,9 @@ public class Peer {
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void appendTime(byte[] msg, int offset, byte[] time) {
-        for (int i = 0; i < time.length; i++)
-            msg[offset + i] = time[i];
+        System.arraycopy(time, 0, msg, offset, time.length);
     }
 
     public void packPeerPackage(byte[] destination, int offset, PeerObject p) {
@@ -766,7 +766,7 @@ public class Peer {
                         isLeaderReacheble.set(true);
                         if (showProgressBar) {
                             while (gui.getLeaderId() == -1) {
-                                int percent = 100 * (progressBar.getWert() + 1) / 99;
+                                int percent = 100 * (progressBar.getValue() + 1) / 99;
                                 if (percent >= 100) {
                                     JOptionPane.showMessageDialog(progressBar, "Leader-Election war nicht erfolgreich", "Fehler", JOptionPane.ERROR_MESSAGE);
                                     progressBar.dispose();
@@ -869,7 +869,7 @@ public class Peer {
                         long middleOffset = 0;
 
                         if (offsetList.size() > 0) {
-                            for (TimeObject to : offsetList)
+                            for (TimeOffsetObject to : offsetList)
                                 middleOffset = to.getTimeAsLong();
                             middleOffset = middleOffset / offsetList.size();
                         }
@@ -877,7 +877,7 @@ public class Peer {
                         byte[] yourNewTime = createHereIsYourNewTimeMsg(Utilities.longToByteArray(new Date().getTime() + middleOffset));
                         peerUtilities.printLogInformation("berechnet: " + middleOffset);
 
-                        for (TimeObject to : offsetList)
+                        for (TimeOffsetObject to : offsetList)
                             sendMsg(to, yourNewTime, true);
                     }
 

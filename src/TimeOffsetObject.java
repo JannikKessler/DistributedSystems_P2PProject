@@ -1,14 +1,10 @@
 //Es werden nur Offsets gespeichert!
-public class TimeObject extends PeerObject {
+public class TimeOffsetObject extends PeerObject {
 
     private byte[] time = new byte[8];
 
-    public TimeObject(PeerObject p, long time) {
-        initTimeObject(p.getIp(), p.getPort(), p.getId(), Utilities.longToByteArray(time));
-    }
-
-    public TimeObject(byte[] ip, byte[] port, byte[] id, byte[] tm) {
-        initTimeObject(ip, port, id, tm);
+    public TimeOffsetObject(PeerObject p, long offset) {
+        initTimeObject(p.getIp(), p.getPort(), p.getId(), Utilities.longToByteArray(offset));
     }
 
     private void initTimeObject(byte[] ip, byte[] port, byte[] id, byte[] tm) {
@@ -16,6 +12,7 @@ public class TimeObject extends PeerObject {
         this.time = tm;
     }
 
+    @SuppressWarnings("unused")
     public byte[] getTime() {
         return this.time;
     }

@@ -18,6 +18,7 @@ public class Startoptionen {
 
             Utilities.setServerIp("localhost");
             Utilities.setShowGui(true);
+            
         } catch (Exception e) {
             Utilities.staticErrorMessage(e);
         }
