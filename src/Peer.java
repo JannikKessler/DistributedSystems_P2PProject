@@ -908,12 +908,12 @@ public class Peer {
         return peerUtilities;
     }
 
+    public Point getLocation() {
+        return location;
+    }
+
     public static void main(String[] args) {
         Peer p = new Peer(3439);
         p.startPeer();
-    }
-
-    public Point getLocation() {
-        return location;
     }
 }
