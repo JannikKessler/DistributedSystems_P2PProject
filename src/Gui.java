@@ -1,6 +1,10 @@
 import java.awt.*;
 import java.awt.event.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.TimeZone;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -20,6 +24,7 @@ public class Gui extends JFrame {
     private JScrollPane scrollPane;
     private JPanel searchOuterPanel;
     private JPanel searchPanel;
+    private JPanel searchPanelHor;
     private JSplitPane topPanel;
     private JPanel bottomPanel;
     private JSplitPane splitPanel;
@@ -33,6 +38,7 @@ public class Gui extends JFrame {
 
     private JLabel labelBold;
     private JLabel labelThin;
+    private JLabel timeLabel;
     private JLabel labelRight;
     private JTextField searchField;
     private JButton searchButton;
@@ -41,6 +47,7 @@ public class Gui extends JFrame {
     private JTextField msgField;
     private JButton msgSendButton;
     private JButton leaderButton;
+    private JButton timeSynButton;
     private JLabel leaderLabel;
     private JTextField msgIDField;
     private JLabel msgIDLabel;
@@ -91,6 +98,25 @@ public class Gui extends JFrame {
         headlinePanel.add(labelBold);
         headlinePanel.add(labelThin);
         headlinePanel.add(Box.createHorizontalGlue());
+        timeLabel = new JLabel();
+        timeLabel.setFont(Utilities.getHeadlineFontThin());
+        headlinePanel.add(timeLabel);
+
+
+        Timer timer = new Timer(500, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                long time = System.currentTimeMillis() + peer.getTimeOffset();
+                Date date = new Date(time);
+                DateFormat formatter = new SimpleDateFormat("HH:mm:ss");
+                formatter.setTimeZone(TimeZone.getTimeZone("Europe/Berlin"));
+                String dateFormatted = formatter.format(date);
+
+                timeLabel.setText(dateFormatted + "  ");
+            }
+        });
+        timer.start();
+
         headlinePanel.add(labelRight);
         mainPanel.add(headlinePanel, BorderLayout.NORTH);
 
@@ -160,6 +186,8 @@ public class Gui extends JFrame {
 
         searchButton.addActionListener(e -> searchForID());
 
+        searchPanelHor = new JPanel();
+        searchPanelHor.setLayout(new BoxLayout(searchPanelHor, BoxLayout.X_AXIS));
 
         leaderButton = new JButton("Leader-Election starten");
         leaderButton.setToolTipText("Führen Sie eine \"Leader-Election\" aus.");
@@ -168,11 +196,18 @@ public class Gui extends JFrame {
         leaderLabel.setFont(Utilities.getNormalFont());
         leaderButton.addActionListener(e -> startLeaderElection());
 
+        timeSynButton = new JButton("TimeSyn starten");
+        timeSynButton.setToolTipText("Führen Sie eine Zeit-Synchronisation aus (Nur möglich, wenn sie Leader sind).");
+        timeSynButton.setFont(Utilities.getNormalFont());
+        timeSynButton.addActionListener(e -> startTimeSyn());
+        timeSynButton.setEnabled(false);
 
-        searchPanel.add(searchField);
-        searchPanel.add(searchButton);
-        searchPanel.add(leaderButton);
+        searchPanelHor.add(searchField);
+        searchPanelHor.add(searchButton);
+        searchPanel.add(searchPanelHor);
         searchPanel.add(leaderLabel);
+        searchPanel.add(leaderButton);
+        searchPanel.add(timeSynButton);
         searchPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 130));
         searchPanel.setBorder(new EmptyBorder(0, 10, 0, 0));
         searchOuterPanel.add(searchPanel);
@@ -377,6 +412,10 @@ public class Gui extends JFrame {
         peer.startLeaderElection(true);
     }
 
+    private void startTimeSyn(){
+        peer.startTimeSyn();
+    }
+
     public void addTextToChat(String txt) {
         chatArea.append("\n" + txt);
     }
@@ -387,6 +426,11 @@ public class Gui extends JFrame {
 
     public void setLeaderId(int id) {
         leaderLabel.setText(leaderText + id);
+        if(getLeaderId() == peer.getMyPeer().getIdAsInt()){
+            timeSynButton.setEnabled(true);
+        } else {
+            timeSynButton.setEnabled(false);
+        }
     }
 
     public int getLeaderId() {

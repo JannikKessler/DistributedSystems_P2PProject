@@ -810,10 +810,9 @@ public class Peer {
 
         Thread t = new Thread(() -> {
 
-            if (txt.equals("timesyn")) {
-                startTimeSyn();
-            } else if (txt.equals("offset")) {
-                peerUtilities.printLogInformation("Mein Time-Offset: " + timeOffset);
+
+            if (false) {
+                // Für Testzwecke
             } else {
 
                 peerUtilities.printLogInformation("[An ID " + idInput + "] " + txt);
@@ -910,6 +909,10 @@ public class Peer {
 
     public Point getLocation() {
         return location;
+    }
+
+    public long getTimeOffset(){
+        return timeOffset;
     }
 
     public static void main(String[] args) {
