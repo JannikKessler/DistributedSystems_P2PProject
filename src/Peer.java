@@ -810,7 +810,7 @@ public class Peer {
 
         Thread t = new Thread(() -> {
 
-
+            //noinspection ConstantConditions,StatementWithEmptyBody
             if (false) {
                 // Für Testzwecke
             } else {
